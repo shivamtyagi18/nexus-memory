@@ -1,0 +1,270 @@
+# NEXUS Memory
+
+**A neuro-inspired long-term memory architecture for AI agents.**
+
+NEXUS combines a capacity-bounded Working Memory, a graph-based Semantic Palace, and asynchronous background consolidation to give LLM agents persistent, scalable memory — without blocking real-time interactions.
+
+> 📄 **Paper:** *NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents* — Shivam Tyagi, 2025
+
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+---
+
+## Architecture
+
+```
+                           ┌─────────────────────────────────┐
+                           │     Asynchronous Consolidation   │
+                           │  ┌───────────┐  ┌────────────┐  │
+                           │  │  Spaced    │  │   Skill    │  │
+                           │  │ Repetition │  │ Abstraction│  │
+                           │  └─────┬─────┘  └─────┬──────┘  │
+                           │        └───────┬───────┘         │
+                           └────────────────┼─────────────────┘
+                                            │ background
+  ┌──────────┐   ┌──────────┐   ┌──────────▼──────────┐   ┌──────────┐
+  │  Input   │──▶│ Attention │──▶│   Episode Buffer    │──▶│ Semantic │
+  │  Text    │   │   Gate    │   │  (append-only log)  │   │  Palace  │
+  └──────────┘   │ (salience │   └─────────────────────┘   │  Graph   │
+                 │  filter)  │                              │ G=(V,E)  │
+                 └──────────┘                              └────┬─────┘
+                                                                │
+  ┌──────────┐   ┌──────────┐   ┌───────────────────┐          │
+  │  Query   │──▶│ Retrieval│──▶│  Working Memory    │◀─────────┘
+  │          │   │  Engine   │   │  (7 ± 2 slots)    │
+  └──────────┘   │ Q(v) =   │   └───────────────────┘
+                 │ β₁cos +  │
+                 │ β₂decay +│   ┌───────────────────┐
+                 │ β₃freq   │──▶│   Meta-Memory      │
+                 └──────────┘   │  (confidence map)  │
+                                └───────────────────┘
+```
+
+**Core idea:** Fast, heuristic encoding (System 1) handles real-time ingestion, while slow, analytical consolidation (System 2) runs asynchronously in the background — inspired by human Dual-Process Theory.
+
+---
+
+## Installation
+
+```bash
+pip install nexus-memory
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/shivamtyagi18/nexus-memory.git
+cd nexus-memory
+pip install -e .
+```
+
+### Prerequisites
+
+NEXUS uses an LLM for reasoning tasks (consolidation, reflection, skill extraction). By default it connects to a local [Ollama](https://ollama.ai) instance:
+
+```bash
+ollama pull mistral
+```
+
+Alternatively, you can use **OpenAI**, **Anthropic**, or **Google Gemini** — see [Using Cloud LLM Providers](#using-cloud-llm-providers) below.
+
+---
+
+## Using Cloud LLM Providers
+
+NEXUS is **provider-agnostic**. Just change the `llm_model` and pass your API key:
+
+```python
+from nexus import NEXUS, NexusConfig
+
+# ── OpenAI ──────────────────────────────────────────────
+config = NexusConfig(
+    llm_model="gpt-4o",
+    openai_api_key="sk-...",
+)
+
+# ── Anthropic ───────────────────────────────────────────
+config = NexusConfig(
+    llm_model="claude-3-5-sonnet-20241022",
+    anthropic_api_key="sk-ant-...",
+)
+
+# ── Google Gemini ───────────────────────────────────────
+config = NexusConfig(
+    llm_model="gemini-1.5-flash",
+    gemini_api_key="AIza...",
+)
+
+# ── Local Ollama (default) ──────────────────────────────
+config = NexusConfig(
+    llm_model="mistral",  # or llama3, codellama, phi3, etc.
+)
+
+memory = NEXUS(config=config)
+```
+
+Routing is automatic based on the model name prefix: `gpt-*` → OpenAI, `claude*` → Anthropic, `gemini*` → Gemini, everything else → Ollama.
+
+---
+
+## Quick Start
+
+```python
+from nexus import NEXUS, NexusConfig
+
+# Initialize
+config = NexusConfig(
+    storage_path="./my_agent_memory",
+    llm_model="mistral",
+)
+memory = NEXUS(config=config)
+
+# Encode information
+memory.encode("User prefers Python for backend development.")
+memory.encode("User is allergic to shellfish.", context="medical")
+
+# Recall by natural-language query
+results = memory.recall("What language does the user prefer?")
+for mem in results:
+    print(f"  [{mem.strength:.2f}] {mem.content}")
+
+# Check what you know (and don't know)
+confidence = memory.how_well_do_i_know("programming languages")
+print(f"Confidence: {confidence.overall:.0%}")
+
+# Run background consolidation
+memory.consolidate()
+
+# Persist to disk
+memory.save()
+```
+
+See [`examples/quickstart.py`](examples/quickstart.py) for a complete working example.
+
+---
+
+## Key API
+
+| Method | Description |
+|---|---|
+| `encode(content, context, source)` | Ingest new information through the Attention Gate |
+| `recall(query, top_k)` | Retrieve relevant memories via graph traversal |
+| `how_well_do_i_know(topic)` | Meta-memory confidence check |
+| `consolidate(depth)` | Run background consolidation (`"full"`, `"light"`, `"defer"`) |
+| `save()` | Persist all state to disk |
+| `pin(memory_id)` | Mark a memory as permanent |
+| `forget(memory_id)` | Gracefully forget a memory (leaves a tombstone) |
+| `stats()` | System-wide statistics |
+
+---
+
+## Configuration
+
+All parameters are optional and have sensible defaults:
+
+```python
+from nexus import NexusConfig
+
+config = NexusConfig(
+    # Working Memory
+    working_memory_slots=7,          # Miller's Law: 7 ± 2
+
+    # Retrieval scoring weights
+    recency_weight=0.2,
+    relevance_weight=0.4,
+    strength_weight=0.2,
+    salience_weight=0.2,
+
+    # Forgetting
+    decay_rate=0.99,                 # per-day temporal decay
+    strength_hard_threshold=0.05,    # below this → forget
+
+    # Palace graph
+    room_merge_threshold=0.85,       # similarity to auto-merge rooms
+
+    # LLM provider (pick one)
+    llm_model="mistral",                     # Ollama (default)
+    # llm_model="gpt-4o",                    # OpenAI
+    # llm_model="claude-3-5-sonnet-20241022",# Anthropic
+    # llm_model="gemini-1.5-flash",          # Google
+    ollama_base_url="http://localhost:11434",
+
+    # Storage
+    storage_path="./nexus_data",
+)
+```
+
+---
+
+## Benchmarks
+
+NEXUS was benchmarked against four baseline architectures on the [LoCoMo](https://github.com/snap-research/locomo) long-sequence conversational dataset (419 dialog turns):
+
+| System | F1 Score | Latency (p95) | Ingestion Time |
+|---|---|---|---|
+| FullContext | 0.040 | 9.07s | 0.0s |
+| MemGPT-style | 0.025 | 10.16s | ~15 min |
+| Mem0-style | 0.024 | 8.39s | ~45 min |
+| NaiveRAG | 0.012 | 8.07s | 9.4s |
+| **NEXUS v2** | 0.010 | **7.62s** | **32.1s** |
+
+**Key finding:** NEXUS achieves a **98.8% reduction in ingestion time** compared to LLM-extraction-based systems (Mem0) while maintaining the lowest query latency.
+
+To reproduce:
+
+```bash
+pip install -e ".[benchmarks]"
+python benchmarks/run_benchmark.py --systems nexus naiverag fullcontext --dataset locomo
+```
+
+---
+
+## Project Structure
+
+```
+nexus-memory/
+├── nexus/                 # Core library
+│   ├── __init__.py
+│   ├── core.py            # NEXUS orchestrator
+│   ├── models.py          # Data models & NexusConfig
+│   ├── palace.py          # Semantic Palace graph
+│   ├── episode_buffer.py  # Append-only temporal log
+│   ├── working_memory.py  # Capacity-bounded priority queue
+│   ├── attention_gate.py  # Salience filter
+│   ├── retrieval.py       # Multi-factor retrieval engine
+│   ├── consolidation.py   # Async background processes
+│   ├── meta_memory.py     # Confidence mapping
+│   ├── vector_store.py    # Vector persistence
+│   ├── llm_interface.py   # Multi-provider LLM connector (Ollama/OpenAI/Anthropic/Gemini)
+│   └── metrics.py         # Observability: counters, gauges, histograms, Prometheus export
+├── tests/                 # 154 tests across 13 files
+├── baselines/             # Baseline implementations for comparison
+├── benchmarks/            # Benchmark harness & scripts
+├── examples/              # Usage examples
+├── paper/                 # IEEE research paper (LaTeX + Markdown)
+├── pyproject.toml
+├── CHANGELOG.md
+├── LICENSE
+└── README.md
+```
+
+---
+
+## Citation
+
+If you use NEXUS in your research, please cite:
+
+```bibtex
+@article{tyagi2025nexus,
+  title={NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents},
+  author={Tyagi, Shivam},
+  year={2025}
+}
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

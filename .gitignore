@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments
+venv/
+venv_plots/
+.venv/
+env/
+
+# NEXUS runtime data
+nexus_data/
+nexus_db/
+data/
+*.faiss
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Temporary files
+*.log
+paper2.pdf
+paper2.txt
+
+# Agent workspace
+.gemini/
+.agent/
+_agent/

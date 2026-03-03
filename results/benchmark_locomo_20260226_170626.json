@@ -1,0 +1,1234 @@
+{
+  "dataset": "LoCoMo",
+  "timestamp": "2026-02-26T17:06:26.599093",
+  "total_time_seconds": 891.3577432632446,
+  "systems": {
+    "NEXUS_v2": {
+      "ingest_time_seconds": 129.52092909812927,
+      "messages_ingested": 419,
+      "questions": [
+        {
+          "question_id": "conv-26_q0",
+          "question": "When did Caroline go to the LGBTQ support group?",
+          "reference": "7 May 2023",
+          "prediction": "Unfortunately, without any specific memories provided about Caroline's attendance at an LGBTQ support group, it is not possible to determine when she went.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 16496.732234954834,
+            "tokens_used": 30,
+            "answer_length": 155
+          }
+        },
+        {
+          "question_id": "conv-26_q1",
+          "question": "When did Melanie paint a sunrise?",
+          "reference": "2022",
+          "prediction": "Based on the provided memories, it is not explicitly stated when Melanie painted a sunrise. However, there is a reference to a lake sunrise that she painted last year (memory 3).",
+          "category": "temporal",
+          "confidence": 0.5502768327855558,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 10799.978017807007,
+            "tokens_used": 41,
+            "answer_length": 178
+          }
+        },
+        {
+          "question_id": "conv-26_q2",
+          "question": "What fields would Caroline be likely to pursue in her educaton?",
+          "reference": "Psychology, counseling certification",
+          "prediction": "Based on the conversation, it is not explicitly stated what specific fields Caroline might be interested in pursuing for her education. However, since the question is about her education, it can be inferred that she might be considering various career paths and therefore would likely explore multiple fields during her educational journey.",
+          "category": "multi_hop",
+          "confidence": 0.37666666343189426,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11647.928953170776,
+            "tokens_used": 60,
+            "answer_length": 340
+          }
+        },
+        {
+          "question_id": "conv-26_q3",
+          "question": "What did Caroline research?",
+          "reference": "Adoption agencies",
+          "prediction": "Since there are no specific memories provided about Caroline's research, it is impossible to determine what she researched based on the information given.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 9238.56782913208,
+            "tokens_used": 31,
+            "answer_length": 154
+          }
+        },
+        {
+          "question_id": "conv-26_q4",
+          "question": "What is Caroline's identity?",
+          "reference": "Transgender woman",
+          "prediction": "I don't have any specific information about a character named Caroline from the context provided. Therefore, I can't determine her identity.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 6063.352823257446,
+            "tokens_used": 29,
+            "answer_length": 140
+          }
+        },
+        {
+          "question_id": "conv-26_q5",
+          "question": "When did Melanie run a charity race?",
+          "reference": "The sunday before 25 May 2023",
+          "prediction": "The memories provided do not provide any information about Melanie running a charity race.",
+          "category": "temporal",
+          "confidence": 0.6857758051180052,
+          "metrics": {
+            "f1": 0.1,
+            "exact_match": 0.0,
+            "latency_ms": 5360.742092132568,
+            "tokens_used": 17,
+            "answer_length": 90
+          }
+        },
+        {
+          "question_id": "conv-26_q6",
+          "question": "When is Melanie planning on going camping?",
+          "reference": "June 2023",
+          "prediction": "The text does not provide specific information about when Melanie is planning to go camping.",
+          "category": "temporal",
+          "confidence": 0.5807045841509397,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 6815.964937210083,
+            "tokens_used": 19,
+            "answer_length": 92
+          }
+        },
+        {
+          "question_id": "conv-26_q7",
+          "question": "What is Caroline's relationship status?",
+          "reference": "Single",
+          "prediction": "Based on the given memories, it appears that Caroline is in a relationship or has recently started one, as multiple people are expressing excitement and well wishes for her and someone else. However, the specific nature of this relationship (romantic, familial, etc.) cannot be definitively determined from these memories alone.",
+          "category": "single_hop",
+          "confidence": 0.6840513178133252,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 12860.519170761108,
+            "tokens_used": 64,
+            "answer_length": 328
+          }
+        },
+        {
+          "question_id": "conv-26_q8",
+          "question": "When did Caroline give a speech at a school?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "The memories do not explicitly state that Caroline gave a speech at a school. However, the phrases \"inspiring stories,\" \"spill the beans,\" and being around \"so much love and acceptance\" could suggest that she may have given a talk or presentation in a public setting such as a school or conference. But without more specific details, it's impossible to definitively say that Caroline gave a speech at a school based on these memories alone.",
+          "category": "temporal",
+          "confidence": 0.6848106178087896,
+          "metrics": {
+            "f1": 0.032786885245901634,
+            "exact_match": 0.0,
+            "latency_ms": 16125.25725364685,
+            "tokens_used": 92,
+            "answer_length": 440
+          }
+        },
+        {
+          "question_id": "conv-26_q9",
+          "question": "When did Caroline meet up with her friends, family, and mentors?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "The memories don't specify a particular time or event where Caroline met up with her friends, family, and mentors. However, based on the context of the conversations, it can be inferred that these meetings might have occurred at some point in the past, as the conversations seem to be reflecting on those events.",
+          "category": "temporal",
+          "confidence": 0.6856303297222113,
+          "metrics": {
+            "f1": 0.03846153846153846,
+            "exact_match": 0.0,
+            "latency_ms": 12459.885835647583,
+            "tokens_used": 66,
+            "answer_length": 312
+          }
+        },
+        {
+          "question_id": "conv-26_q10",
+          "question": "How long has Caroline had her current group of friends for?",
+          "reference": "4 years",
+          "prediction": "The memories do not provide specific information about how long Caroline has had her current group of friends for. However, the tone and context suggest that they have been friends for a significant amount of time, as indicated by phrases like \"our friendship,\" \"you've always been there for me,\" and \"I cherish time with family.\"",
+          "category": "temporal",
+          "confidence": 0.6865020613283279,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 14352.802038192749,
+            "tokens_used": 68,
+            "answer_length": 330
+          }
+        },
+        {
+          "question_id": "conv-26_q11",
+          "question": "Where did Caroline move from 4 years ago?",
+          "reference": "Sweden",
+          "prediction": "The question does not provide information about a move 4 years ago. The memories only indicate that Caroline is currently in a place where she experienced something cool, huge, filled with love and acceptance, and where she's on a trip learning and exploring. Without more context or specific details, it's impossible to determine where Caroline moved from 4 years ago based on these memories alone.",
+          "category": "single_hop",
+          "confidence": 0.6958658549021489,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 15328.189849853516,
+            "tokens_used": 79,
+            "answer_length": 399
+          }
+        },
+        {
+          "question_id": "conv-26_q12",
+          "question": "How long ago was Caroline's 18th birthday?",
+          "reference": "10 years ago",
+          "prediction": "The memories provided do not give a clear indication of when Caroline's 18th birthday occurred. However, they suggest that the event being celebrated might be related to her birthday, but it is not explicitly stated.",
+          "category": "temporal",
+          "confidence": 0.7012076433345318,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11186.453104019165,
+            "tokens_used": 45,
+            "answer_length": 216
+          }
+        },
+        {
+          "question_id": "conv-26_q13",
+          "question": "What career path has Caroline decided to persue?",
+          "reference": "counseling or mental health for Transgender people",
+          "prediction": "The memory does not provide information about Caroline deciding on a specific career path.",
+          "category": "single_hop",
+          "confidence": 0.38583332935721254,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 4621.805667877197,
+            "tokens_used": 16,
+            "answer_length": 90
+          }
+        },
+        {
+          "question_id": "conv-26_q14",
+          "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+          "reference": "Likely no",
+          "prediction": "Based on the provided memories, it is suggested that Caroline's support system played a significant role in her life and career choices. Since she appreciates their encouragement and considers them her motivation and biggest support, it can be inferred that without this support, she might not have pursued counseling as a career.",
+          "category": "multi_hop",
+          "confidence": 0.6865568766203936,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 13129.885911941528,
+            "tokens_used": 65,
+            "answer_length": 330
+          }
+        },
+        {
+          "question_id": "conv-26_q15",
+          "question": "What activities does Melanie partake in?",
+          "reference": "pottery, camping, painting, swimming",
+          "prediction": "Based on the given memories, it appears that Melanie engages in activities where she supports and encourages others, fostering an environment of mutual growth and learning. However, the specific activities are not explicitly mentioned in these excerpts.",
+          "category": "single_hop",
+          "confidence": 0.6900409256923417,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 10557.148218154907,
+            "tokens_used": 49,
+            "answer_length": 253
+          }
+        },
+        {
+          "question_id": "conv-26_q16",
+          "question": "When did Melanie sign up for a pottery class?",
+          "reference": "2 July 2023",
+          "prediction": "Based on the provided memories, it is not explicitly stated when Melanie signed up for a pottery class. However, it can be inferred that she took a pottery class at some point as she mentions making a piece of pottery and also talks about taking a break from it.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 13895.939826965332,
+            "tokens_used": 60,
+            "answer_length": 262
+          }
+        },
+        {
+          "question_id": "conv-26_q17",
+          "question": "When is Caroline going to the transgender conference?",
+          "reference": "July 2023",
+          "prediction": "I'm unable to provide an answer as there are no relevant memories provided about Caroline or any information regarding a transgender conference.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 5142.14301109314,
+            "tokens_used": 27,
+            "answer_length": 144
+          }
+        },
+        {
+          "question_id": "conv-26_q18",
+          "question": "Where has Melanie camped?",
+          "reference": "beach, mountains, forest",
+          "prediction": "The question does not provide information about a camping trip for Melanie. The memories shared seem to revolve around personal growth, family moments, and support from others, but there's no mention of a specific location like a campsite.",
+          "category": "single_hop",
+          "confidence": 0.6930162001787563,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11011.620998382568,
+            "tokens_used": 50,
+            "answer_length": 239
+          }
+        },
+        {
+          "question_id": "conv-26_q19",
+          "question": "What do Melanie's kids like?",
+          "reference": "dinosaurs, nature",
+          "prediction": "Based on the given memories, it is not explicitly stated what Melanie's kids like. However, it can be inferred that they enjoy spending time with their family and being together, as there are multiple mentions of family moments and Melanie's love for her family.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11674.152374267578,
+            "tokens_used": 58,
+            "answer_length": 262
+          }
+        }
+      ],
+      "aggregate": {
+        "f1_mean": 0.008562421185372005,
+        "f1_min": 0.0,
+        "f1_max": 0.1,
+        "exact_match_mean": 0.0,
+        "exact_match_min": 0.0,
+        "exact_match_max": 0.0,
+        "latency_ms_mean": 10938.4535074234,
+        "latency_ms_min": 4621.805667877197,
+        "latency_ms_max": 16496.732234954834,
+        "latency_p95": 16496.732234954834,
+        "tokens_used_mean": 48.3,
+        "tokens_used_min": 16,
+        "tokens_used_max": 92,
+        "answer_length_mean": 237.7,
+        "answer_length_min": 90,
+        "answer_length_max": 440,
+        "total_questions": 20
+      },
+      "by_category": {
+        "temporal": {
+          "f1_mean": 0.01712484237074401,
+          "f1_min": 0.0,
+          "f1_max": 0.1,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 11263.589835166931,
+          "latency_ms_min": 5142.14301109314,
+          "latency_ms_max": 16496.732234954834,
+          "tokens_used_mean": 46.5,
+          "tokens_used_min": 17,
+          "tokens_used_max": 92,
+          "answer_length_mean": 221.9,
+          "answer_length_min": 90,
+          "answer_length_max": 440,
+          "total_questions": 10
+        },
+        "multi_hop": {
+          "f1_mean": 0.0,
+          "f1_min": 0.0,
+          "f1_max": 0.0,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 12388.907432556152,
+          "latency_ms_min": 11647.928953170776,
+          "latency_ms_max": 13129.885911941528,
+          "tokens_used_mean": 62.5,
+          "tokens_used_min": 60,
+          "tokens_used_max": 65,
+          "answer_length_mean": 335.0,
+          "answer_length_min": 330,
+          "answer_length_max": 340,
+          "total_questions": 2
+        },
+        "single_hop": {
+          "f1_mean": 0.0,
+          "f1_min": 0.0,
+          "f1_max": 0.0,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 10169.4196164608,
+          "latency_ms_min": 4621.805667877197,
+          "latency_ms_max": 15328.189849853516,
+          "tokens_used_mean": 47.0,
+          "tokens_used_min": 16,
+          "tokens_used_max": 79,
+          "answer_length_mean": 233.125,
+          "answer_length_min": 90,
+          "answer_length_max": 399,
+          "total_questions": 8
+        }
+      },
+      "system_stats": {
+        "name": "NEXUS_v2",
+        "messages_ingested": 419,
+        "queries_answered": 20,
+        "avg_latency_ms": 10938.4535074234,
+        "palace": {
+          "room_count": 159,
+          "memory_count": 419,
+          "edge_count": 0,
+          "landmark_count": 0,
+          "avg_room_size": 2.6352201257861636,
+          "max_room_size": 49,
+          "connected_rooms": 0,
+          "isolated_rooms": 159
+        },
+        "working_memory": {
+          "slots_used": 7,
+          "max_slots": 7,
+          "active_chunks": 4,
+          "suggestions_pending": 0,
+          "warnings_pending": 0,
+          "total_evictions": 65
+        },
+        "retrieval": {
+          "total_retrievals": 16,
+          "avg_latency_ms": 131.02999329566956,
+          "p95_latency_ms": 239.0289306640625,
+          "avg_results_per_query": 4.5
+        },
+        "consolidation": {
+          "last_consolidation": null,
+          "total_consolidations": 0,
+          "tombstones": 0,
+          "skills_extracted": 0,
+          "unconsolidated_episodes": 419
+        },
+        "meta_memory": {
+          "total_rooms": 159,
+          "active_gaps": 0,
+          "resolved_gaps": 0,
+          "failed_retrievals": 12
+        },
+        "episode_buffer": {
+          "total_episodes": 419,
+          "unconsolidated": 419
+        },
+        "vector_store": {
+          "total_vectors": 997
+        }
+      }
+    },
+    "NaiveRAG": {
+      "ingest_time_seconds": 24.160476207733154,
+      "messages_ingested": 419,
+      "questions": [
+        {
+          "question_id": "conv-26_q0",
+          "question": "When did Caroline go to the LGBTQ support group?",
+          "reference": "7 May 2023",
+          "prediction": "The memory that implies Caroline went to an LGBTQ support group is the fourth one. However, it doesn't specify the exact date.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 9723.732948303223,
+            "tokens_used": 29,
+            "answer_length": 126
+          }
+        },
+        {
+          "question_id": "conv-26_q1",
+          "question": "When did Melanie paint a sunrise?",
+          "reference": "2022",
+          "prediction": "Last year",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 3589.3261432647705,
+            "tokens_used": 3,
+            "answer_length": 9
+          }
+        },
+        {
+          "question_id": "conv-26_q2",
+          "question": "What fields would Caroline be likely to pursue in her educaton?",
+          "reference": "Psychology, counseling certification",
+          "prediction": "Based on the provided memories, it is not explicitly stated what field Caroline is pursuing or planning to pursue. However, the conversations suggest that she may have an interest in exploring various opportunities, learning new things, and appreciating art and human connections. This could indicate a potential interest in fields such as arts, humanities, social sciences, or even careers that involve creativity, communication, and empathy.",
+          "category": "multi_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 16172.017812728882,
+            "tokens_used": 82,
+            "answer_length": 443
+          }
+        },
+        {
+          "question_id": "conv-26_q3",
+          "question": "What did Caroline research?",
+          "reference": "Adoption agencies",
+          "prediction": "The provided memories don't explicitly state that Caroline researched something. However, the context suggests that she might have been inspired by an experience or story, and is planning or thinking about jobs or activities. But without more specific information, it's impossible to definitively say that Caroline researched something.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 12422.827005386353,
+            "tokens_used": 66,
+            "answer_length": 336
+          }
+        },
+        {
+          "question_id": "conv-26_q4",
+          "question": "What is Caroline's identity?",
+          "reference": "Transgender woman",
+          "prediction": "Based on the provided memories, it appears that Caroline is an artist whose work is appreciated by others for its beauty, inspiration, and ability to convey themes such as unity and strength. However, without additional context or information, it cannot be definitively confirmed that Caroline is a specific individual's identity.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 12178.081035614014,
+            "tokens_used": 61,
+            "answer_length": 330
+          }
+        },
+        {
+          "question_id": "conv-26_q5",
+          "question": "When did Melanie run a charity race?",
+          "reference": "The sunday before 25 May 2023",
+          "prediction": "The memory that suggests Melanie ran a charity race is the following: \"That charity race sounds great, Mel! Making a difference & raising awareness for mental health is super rewarding - I'm really proud of you for taking part!\" Therefore, it can be inferred that Melanie ran a charity race at some point. However, the exact date or time of the event is not specified in the provided memories.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.03636363636363636,
+            "exact_match": 0.0,
+            "latency_ms": 16642.985105514526,
+            "tokens_used": 85,
+            "answer_length": 393
+          }
+        },
+        {
+          "question_id": "conv-26_q6",
+          "question": "When is Melanie planning on going camping?",
+          "reference": "June 2023",
+          "prediction": "Next month, as mentioned in the second memory.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 5374.16410446167,
+            "tokens_used": 11,
+            "answer_length": 46
+          }
+        },
+        {
+          "question_id": "conv-26_q7",
+          "question": "What is Caroline's relationship status?",
+          "reference": "Single",
+          "prediction": "Based on the provided memories, it appears that Caroline is either expecting a child or has recently adopted one, as several conversations revolve around love, acceptance, a new chapter, and being on a trip together. However, the exact nature of her relationship status (single, in a relationship, married, etc.) is not explicitly stated in these memories.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.04166666666666667,
+            "exact_match": 0.0,
+            "latency_ms": 13649.138927459717,
+            "tokens_used": 71,
+            "answer_length": 356
+          }
+        },
+        {
+          "question_id": "conv-26_q8",
+          "question": "When did Caroline give a speech at a school?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "Based on the provided memories, there is no explicit mention that Caroline gave a speech at a school.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.08695652173913045,
+            "exact_match": 0.0,
+            "latency_ms": 6636.460781097412,
+            "tokens_used": 21,
+            "answer_length": 101
+          }
+        },
+        {
+          "question_id": "conv-26_q9",
+          "question": "When did Caroline meet up with her friends, family, and mentors?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "The memories do not provide specific details about when or where Caroline met up with her friends, family, and mentors. However, based on the context of the conversations, it can be inferred that the meeting might have been related to an inspiring trip or event where there was learning, exploration, love, acceptance, and a sense of happiness and aliveness.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.03508771929824561,
+            "exact_match": 0.0,
+            "latency_ms": 14569.014072418213,
+            "tokens_used": 74,
+            "answer_length": 358
+          }
+        },
+        {
+          "question_id": "conv-26_q10",
+          "question": "How long has Caroline had her current group of friends for?",
+          "reference": "4 years",
+          "prediction": "The memories provided do not provide enough information to determine how long Caroline has had her current group of friends for. However, the tone and content suggest that they have been friends for some time, as there is a sense of familiarity and closeness between them.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 14034.266710281372,
+            "tokens_used": 53,
+            "answer_length": 272
+          }
+        },
+        {
+          "question_id": "conv-26_q11",
+          "question": "Where did Caroline move from 4 years ago?",
+          "reference": "Sweden",
+          "prediction": "The question does not provide information about a move that happened 4 years ago. The memories only suggest that Caroline is currently on a trip and has experienced some significant events, but there's no mention of a past move.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11835.989952087402,
+            "tokens_used": 46,
+            "answer_length": 228
+          }
+        },
+        {
+          "question_id": "conv-26_q12",
+          "question": "How long ago was Caroline's 18th birthday?",
+          "reference": "10 years ago",
+          "prediction": "The provided memories do not provide enough information to determine when Caroline's 18th birthday occurred.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 8254.613161087036,
+            "tokens_used": 22,
+            "answer_length": 108
+          }
+        },
+        {
+          "question_id": "conv-26_q13",
+          "question": "What career path has Caroline decided to persue?",
+          "reference": "counseling or mental health for Transgender people",
+          "prediction": "The text does not provide information about a specific career path that Caroline has decided to pursue. It suggests that she is considering various job opportunities and exploring new things, but no definitive decision has been made.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 9720.771789550781,
+            "tokens_used": 42,
+            "answer_length": 233
+          }
+        },
+        {
+          "question_id": "conv-26_q14",
+          "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+          "reference": "Likely no",
+          "prediction": "Based on the provided memories, it is suggested that Caroline has received significant emotional support from others, which has played a crucial role in her personal growth. It can be inferred that this support may have influenced her decision to pursue counseling as a career, as she seems to value empathy, understanding, and encouragement. However, without more specific information about Caroline's background or motivations, it is impossible to definitively answer whether she would still want to pursue counseling if she hadn't received support growing up.",
+          "category": "multi_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 20045.556783676147,
+            "tokens_used": 107,
+            "answer_length": 562
+          }
+        },
+        {
+          "question_id": "conv-26_q15",
+          "question": "What activities does Melanie partake in?",
+          "reference": "pottery, camping, painting, swimming",
+          "prediction": "Based on the provided memories, it appears that Melanie engages in activities where she socializes with others, such as spending time with family, having conversations with friends, and being around people who support her personal growth and adventures. However, the specific activities are not explicitly mentioned in these memories.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 13543.60818862915,
+            "tokens_used": 60,
+            "answer_length": 334
+          }
+        },
+        {
+          "question_id": "conv-26_q16",
+          "question": "When did Melanie sign up for a pottery class?",
+          "reference": "2 July 2023",
+          "prediction": "From the given memories, we don't have any specific information about when Melanie signed up for a pottery class. However, it can be inferred that she might have done so after the first memory (when someone asked her why she tried pottery) and before the fourth memory (when she shows her own piece).",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 15228.968143463135,
+            "tokens_used": 67,
+            "answer_length": 300
+          }
+        },
+        {
+          "question_id": "conv-26_q17",
+          "question": "When is Caroline going to the transgender conference?",
+          "reference": "July 2023",
+          "prediction": "Caroline is going to the transgender conference this month.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 7055.9539794921875,
+            "tokens_used": 12,
+            "answer_length": 59
+          }
+        },
+        {
+          "question_id": "conv-26_q18",
+          "question": "Where has Melanie camped?",
+          "reference": "beach, mountains, forest",
+          "prediction": "The question does not provide information about a camping trip for Melanie. However, based on the context of the memories, it seems that Melanie had a great time with family or friends, possibly at an event or outing, but the location is not specified in these memories.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 12712.904930114746,
+            "tokens_used": 58,
+            "answer_length": 270
+          }
+        },
+        {
+          "question_id": "conv-26_q19",
+          "question": "What do Melanie's kids like?",
+          "reference": "dinosaurs, nature",
+          "prediction": "Based on the provided memories, there is no explicit mention of what Melanie's kids like. However, it can be inferred that they likely bring joy to their family and are involved in activities that allow for memorable moments, such as adventures and family time together.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 11851.704120635986,
+            "tokens_used": 55,
+            "answer_length": 270
+          }
+        }
+      ],
+      "aggregate": {
+        "f1_mean": 0.010003727203383956,
+        "f1_min": 0.0,
+        "f1_max": 0.08695652173913045,
+        "exact_match_mean": 0.0,
+        "exact_match_min": 0.0,
+        "exact_match_max": 0.0,
+        "latency_ms_mean": 11762.104284763336,
+        "latency_ms_min": 3589.3261432647705,
+        "latency_ms_max": 20045.556783676147,
+        "latency_p95": 20045.556783676147,
+        "tokens_used_mean": 51.25,
+        "tokens_used_min": 3,
+        "tokens_used_max": 107,
+        "answer_length_mean": 256.7,
+        "answer_length_min": 9,
+        "answer_length_max": 562,
+        "total_questions": 20
+      },
+      "by_category": {
+        "temporal": {
+          "f1_mean": 0.015840787740101243,
+          "f1_min": 0.0,
+          "f1_max": 0.08695652173913045,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 10110.948514938354,
+          "latency_ms_min": 3589.3261432647705,
+          "latency_ms_max": 16642.985105514526,
+          "tokens_used_mean": 37.7,
+          "tokens_used_min": 3,
+          "tokens_used_max": 85,
+          "answer_length_mean": 177.2,
+          "answer_length_min": 9,
+          "answer_length_max": 393,
+          "total_questions": 10
+        },
+        "multi_hop": {
+          "f1_mean": 0.0,
+          "f1_min": 0.0,
+          "f1_max": 0.0,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 18108.787298202515,
+          "latency_ms_min": 16172.017812728882,
+          "latency_ms_max": 20045.556783676147,
+          "tokens_used_mean": 94.5,
+          "tokens_used_min": 82,
+          "tokens_used_max": 107,
+          "answer_length_mean": 502.5,
+          "answer_length_min": 443,
+          "answer_length_max": 562,
+          "total_questions": 2
+        },
+        "single_hop": {
+          "f1_mean": 0.005208333333333334,
+          "f1_min": 0.0,
+          "f1_max": 0.04166666666666667,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 12239.378243684769,
+          "latency_ms_min": 9720.771789550781,
+          "latency_ms_max": 13649.138927459717,
+          "tokens_used_mean": 57.375,
+          "tokens_used_min": 42,
+          "tokens_used_max": 71,
+          "answer_length_mean": 294.625,
+          "answer_length_min": 228,
+          "answer_length_max": 356,
+          "total_questions": 8
+        }
+      },
+      "system_stats": {
+        "name": "NaiveRAG",
+        "messages_ingested": 419,
+        "queries_answered": 20,
+        "avg_latency_ms": 11762.104284763336,
+        "total_messages": 419,
+        "vector_count": 419
+      }
+    },
+    "FullContext": {
+      "ingest_time_seconds": 0.01318812370300293,
+      "messages_ingested": 419,
+      "questions": [
+        {
+          "question_id": "conv-26_q0",
+          "question": "When did Caroline go to the LGBTQ support group?",
+          "reference": "7 May 2023",
+          "prediction": "The conversation history does not provide a specific date when Caroline went to the LGBTQ+ support group, as it only discusses her involvement in volunteering at the youth center and creating art without mentioning any specific events or dates.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 99082.45301246643,
+            "tokens_used": 47,
+            "answer_length": 244
+          }
+        },
+        {
+          "question_id": "conv-26_q1",
+          "question": "When did Melanie paint a sunrise?",
+          "reference": "2022",
+          "prediction": "The conversation history does not specify a particular instance where Melanie painted a sunrise. However, it mentions that she painted a painting inspired by the sunsets, but there's no mention of a sunrise painting.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 8634.160041809082,
+            "tokens_used": 46,
+            "answer_length": 216
+          }
+        },
+        {
+          "question_id": "conv-26_q2",
+          "question": "What fields would Caroline be likely to pursue in her educaton?",
+          "reference": "Psychology, counseling certification",
+          "prediction": "Based on the conversation history, it is not explicitly stated what fields Caroline might pursue in her education. However, her interests seem to lean towards art, music, and social work, as she volunteers at a youth center, creates art, plays guitar, and has a passion for helping others, particularly within the LGBTQ+ community. It's also worth noting that she is considering adoption, which suggests an interest in child welfare or psychology.",
+          "category": "multi_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.030303030303030304,
+            "exact_match": 0.0,
+            "latency_ms": 16087.80312538147,
+            "tokens_used": 89,
+            "answer_length": 447
+          }
+        },
+        {
+          "question_id": "conv-26_q3",
+          "question": "What did Caroline research?",
+          "reference": "Adoption agencies",
+          "prediction": "In the conversation history, it is not explicitly stated that Caroline researched anything specific. However, she did provide advice on adoption, suggesting that she might have done some research to help her friend with their adoption process.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.05555555555555555,
+            "exact_match": 0.0,
+            "latency_ms": 8480.307340621948,
+            "tokens_used": 46,
+            "answer_length": 243
+          }
+        },
+        {
+          "question_id": "conv-26_q4",
+          "question": "What is Caroline's identity?",
+          "reference": "Transgender woman",
+          "prediction": "Based on the conversation history, it is apparent that Caroline identifies as a transgender woman. This is inferred from her discussions about her transition, her gender identity, and her experiences related to being transgender. For example, she mentions creating art to express her feelings and explore her gender identity during her transition, and discusses the impact of her journey on her relationships, particularly those who were not able to handle it. Additionally, she attends a poetry reading for transgender people and creates art that represents her womanhood and freedom.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.06451612903225806,
+            "exact_match": 0.0,
+            "latency_ms": 19495.38803100586,
+            "tokens_used": 110,
+            "answer_length": 585
+          }
+        },
+        {
+          "question_id": "conv-26_q5",
+          "question": "When did Melanie run a charity race?",
+          "reference": "The sunday before 25 May 2023",
+          "prediction": "Based on the conversation history provided, there is no mention of Melanie running a charity race.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.09090909090909091,
+            "exact_match": 0.0,
+            "latency_ms": 4205.408811569214,
+            "tokens_used": 20,
+            "answer_length": 98
+          }
+        },
+        {
+          "question_id": "conv-26_q6",
+          "question": "When is Melanie planning on going camping?",
+          "reference": "June 2023",
+          "prediction": "The conversation history does not provide information about when Melanie plans to go camping again.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 4050.8437156677246,
+            "tokens_used": 19,
+            "answer_length": 99
+          }
+        },
+        {
+          "question_id": "conv-26_q7",
+          "question": "What is Caroline's relationship status?",
+          "reference": "Single",
+          "prediction": "Based on the conversation history, it is not explicitly stated what Caroline's relationship status is. However, she mentions being a mom in one of her messages, but it seems to be about adopting children rather than having biological ones.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 9374.834775924683,
+            "tokens_used": 50,
+            "answer_length": 239
+          }
+        },
+        {
+          "question_id": "conv-26_q8",
+          "question": "When did Caroline give a speech at a school?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "Based on the conversation history provided, there is no record of Caroline giving a speech at a school.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.08695652173913045,
+            "exact_match": 0.0,
+            "latency_ms": 4422.475576400757,
+            "tokens_used": 21,
+            "answer_length": 103
+          }
+        },
+        {
+          "question_id": "conv-26_q9",
+          "question": "When did Caroline meet up with her friends, family, and mentors?",
+          "reference": "The week before 9 June 2023",
+          "prediction": "The conversation history does not specify a specific meeting between Caroline and her friends, family, and mentors. However, they have communicated through messages at various points in the conversation history.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0625,
+            "exact_match": 0.0,
+            "latency_ms": 7509.490013122559,
+            "tokens_used": 38,
+            "answer_length": 211
+          }
+        },
+        {
+          "question_id": "conv-26_q10",
+          "question": "How long has Caroline had her current group of friends for?",
+          "reference": "4 years",
+          "prediction": "The conversation history does not provide specific information about how long Caroline has known her current group of friends for. However, they seem to have a close relationship and share many experiences together, suggesting that they've been friends for some time.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 8784.727096557617,
+            "tokens_used": 48,
+            "answer_length": 267
+          }
+        },
+        {
+          "question_id": "conv-26_q11",
+          "question": "Where did Caroline move from 4 years ago?",
+          "reference": "Sweden",
+          "prediction": "The conversation history does not provide information about where Caroline moved from 4 years ago.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 3675.2099990844727,
+            "tokens_used": 18,
+            "answer_length": 98
+          }
+        },
+        {
+          "question_id": "conv-26_q12",
+          "question": "How long ago was Caroline's 18th birthday?",
+          "reference": "10 years ago",
+          "prediction": "The conversation history does not provide information about Caroline's exact age or when her 18th birthday occurred, so it is impossible to determine how long ago her 18th birthday was based on the provided conversation.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0606060606060606,
+            "exact_match": 0.0,
+            "latency_ms": 8770.259141921997,
+            "tokens_used": 46,
+            "answer_length": 220
+          }
+        },
+        {
+          "question_id": "conv-26_q13",
+          "question": "What career path has Caroline decided to persue?",
+          "reference": "counseling or mental health for Transgender people",
+          "prediction": "Based on the conversation history, it is not explicitly stated what specific career path Caroline has decided to pursue. However, it is clear that she is actively involved in volunteering at a youth center, organizing events for children, and creating art as a form of self-expression and therapy. Additionally, she mentions her passion for helping others, particularly the LGBTQ+ community, and her desire to adopt and provide a loving home for children in need. These activities suggest that Caroline may be pursuing a career in social work, education, or child advocacy, but it is not definitively stated in the conversation history.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.05063291139240506,
+            "exact_match": 0.0,
+            "latency_ms": 22362.647771835327,
+            "tokens_used": 126,
+            "answer_length": 636
+          }
+        },
+        {
+          "question_id": "conv-26_q14",
+          "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+          "reference": "Likely no",
+          "prediction": "Based on the conversation history, it is not explicitly stated whether or not Caroline would have pursued counseling as a career if she hadn't received support growing up. However, it can be inferred that her experiences and the people who supported her played a significant role in her decision to help others, especially through volunteering at the youth center and sharing her story. While there is no direct mention of her career aspirations, it is possible that her supportive network and personal journey influenced her interest in helping others, which could have included pursuing counseling as a career.",
+          "category": "multi_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.02666666666666666,
+            "exact_match": 0.0,
+            "latency_ms": 21555.13906478882,
+            "tokens_used": 116,
+            "answer_length": 612
+          }
+        },
+        {
+          "question_id": "conv-26_q15",
+          "question": "What activities does Melanie partake in?",
+          "reference": "pottery, camping, painting, swimming",
+          "prediction": "Melanie enjoys playing the clarinet, painting, pottery, attending poetry readings, camping with her family, and going on road trips with them. She also appreciates music, especially pop songs by \"Summer Sounds\" and classical pieces by Bach and Mozart.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.15789473684210525,
+            "exact_match": 0.0,
+            "latency_ms": 10890.916109085083,
+            "tokens_used": 58,
+            "answer_length": 251
+          }
+        },
+        {
+          "question_id": "conv-26_q16",
+          "question": "When did Melanie sign up for a pottery class?",
+          "reference": "2 July 2023",
+          "prediction": "The conversation history does not provide information on when Melanie signed up for a pottery class.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 4121.358156204224,
+            "tokens_used": 20,
+            "answer_length": 100
+          }
+        },
+        {
+          "question_id": "conv-26_q17",
+          "question": "When is Caroline going to the transgender conference?",
+          "reference": "July 2023",
+          "prediction": "The conversation history does not provide information about when Caroline will attend a transgender conference.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 3901.6177654266357,
+            "tokens_used": 18,
+            "answer_length": 111
+          }
+        },
+        {
+          "question_id": "conv-26_q18",
+          "question": "Where has Melanie camped?",
+          "reference": "beach, mountains, forest",
+          "prediction": "The conversation history does not provide information about where Melanie has camped.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 3617.5389289855957,
+            "tokens_used": 16,
+            "answer_length": 85
+          }
+        },
+        {
+          "question_id": "conv-26_q19",
+          "question": "What do Melanie's kids like?",
+          "reference": "dinosaurs, nature",
+          "prediction": "From the conversation history, it seems that Melanie's kids enjoy outdoor activities such as camping and hiking, as well as creative pursuits like painting and playing music (mentioned in passing). They also seem to appreciate spending quality time with their family. However, no specific interests or hobbies of Melanie's kids are explicitly mentioned in the conversation history provided.",
+          "category": "single_hop",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 14262.815952301025,
+            "tokens_used": 78,
+            "answer_length": 390
+          }
+        }
+      ],
+      "aggregate": {
+        "f1_mean": 0.034327035152315145,
+        "f1_min": 0.0,
+        "f1_max": 0.15789473684210525,
+        "exact_match_mean": 0.0,
+        "exact_match_min": 0.0,
+        "exact_match_max": 0.0,
+        "latency_ms_mean": 14164.269721508026,
+        "latency_ms_min": 3617.5389289855957,
+        "latency_ms_max": 99082.45301246643,
+        "latency_p95": 99082.45301246643,
+        "tokens_used_mean": 51.5,
+        "tokens_used_min": 16,
+        "tokens_used_max": 126,
+        "answer_length_mean": 262.75,
+        "answer_length_min": 85,
+        "answer_length_max": 636,
+        "total_questions": 20
+      },
+      "by_category": {
+        "temporal": {
+          "f1_mean": 0.0300971673254282,
+          "f1_min": 0.0,
+          "f1_max": 0.09090909090909091,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 15348.279333114624,
+          "latency_ms_min": 3901.6177654266357,
+          "latency_ms_max": 99082.45301246643,
+          "tokens_used_mean": 32.3,
+          "tokens_used_min": 18,
+          "tokens_used_max": 48,
+          "answer_length_mean": 166.9,
+          "answer_length_min": 98,
+          "answer_length_max": 267,
+          "total_questions": 10
+        },
+        "multi_hop": {
+          "f1_mean": 0.02848484848484848,
+          "f1_min": 0.02666666666666666,
+          "f1_max": 0.030303030303030304,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 18821.471095085144,
+          "latency_ms_min": 16087.80312538147,
+          "latency_ms_max": 21555.13906478882,
+          "tokens_used_mean": 102.5,
+          "tokens_used_min": 89,
+          "tokens_used_max": 116,
+          "answer_length_mean": 529.5,
+          "answer_length_min": 447,
+          "answer_length_max": 612,
+          "total_questions": 2
+        },
+        "single_hop": {
+          "f1_mean": 0.041074916602790494,
+          "f1_min": 0.0,
+          "f1_max": 0.15789473684210525,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 11519.9573636055,
+          "latency_ms_min": 3617.5389289855957,
+          "latency_ms_max": 22362.647771835327,
+          "tokens_used_mean": 62.75,
+          "tokens_used_min": 16,
+          "tokens_used_max": 126,
+          "answer_length_mean": 315.875,
+          "answer_length_min": 85,
+          "answer_length_max": 636,
+          "total_questions": 8
+        }
+      },
+      "system_stats": {
+        "name": "FullContext",
+        "messages_ingested": 419,
+        "queries_answered": 20,
+        "avg_latency_ms": 14164.269721508026,
+        "history_length": 419,
+        "total_chars": 57690,
+        "estimated_tokens": 14422
+      }
+    }
+  },
+  "comparison": {
+    "NEXUS_v2": {
+      "f1_mean": 0.008562421185372005,
+      "latency_mean_ms": 10938.4535074234,
+      "tokens_mean": 48.3
+    },
+    "NaiveRAG": {
+      "f1_mean": 0.010003727203383956,
+      "latency_mean_ms": 11762.104284763336,
+      "tokens_mean": 51.25
+    },
+    "FullContext": {
+      "f1_mean": 0.034327035152315145,
+      "latency_mean_ms": 14164.269721508026,
+      "tokens_mean": 51.5
+    }
+  }
+}
