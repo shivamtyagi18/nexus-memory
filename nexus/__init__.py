@@ -7,6 +7,6 @@ from nexus.core import NEXUS
 from nexus.models import Memory, SalienceScore, MemorySource, Modality, NexusConfig
 from nexus.metrics import NexusMetrics
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = ["NEXUS", "NexusConfig", "NexusMetrics", "Memory", "SalienceScore", "MemorySource", "Modality"]
 

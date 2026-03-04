@@ -51,6 +51,12 @@ NEXUS combines a capacity-bounded Working Memory, a graph-based Semantic Palace,
 pip install nexus-memory
 ```
 
+With optional **FAISS** accelerated vector search:
+
+```bash
+pip install nexus-memory[faiss]
+```
+
 Or install from source:
 
 ```bash
@@ -211,11 +217,23 @@ NEXUS was benchmarked against four baseline architectures on the [LoCoMo](https:
 
 **Key finding:** NEXUS achieves a **98.8% reduction in ingestion time** compared to LLM-extraction-based systems (Mem0) while maintaining the lowest query latency.
 
+### Vector Search Backend
+
+NEXUS supports two vector search backends. FAISS is auto-detected when installed:
+
+| Backend | 1K vectors | 10K vectors | 100K vectors | Memory (100K) |
+|---|---|---|---|---|
+| NumPy | 22 µs | 179 µs | 2.75 ms | 146.5 MB |
+| **FAISS** | 28 µs | 200 µs | **2.24 ms** | **979 B** |
+
+At scale, FAISS is **1.2× faster** with **150,000× less memory**.
+
 To reproduce:
 
 ```bash
 pip install -e ".[benchmarks]"
 python benchmarks/run_benchmark.py --systems nexus naiverag fullcontext --dataset locomo
+python benchmarks/vector_benchmark.py   # NumPy vs FAISS comparison
 ```
 
 ---
