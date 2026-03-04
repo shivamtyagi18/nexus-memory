@@ -278,7 +278,7 @@ If you use NEXUS in your research, please cite:
   title={NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents},
   author={Tyagi, Shivam},
   year={2025},
-  doi={10.13140/RG.2.2.11459.67364}
+  doi={10.13140/RG.2.2.16984.35848}
 }
 ```
 
