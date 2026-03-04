@@ -39,6 +39,9 @@ dependencies = [
 dev = [
     "pytest>=7.0",
 ]
+faiss = [
+    "faiss-cpu>=1.7.0",
+]
 benchmarks = [
     "matplotlib>=3.7.0",
 ]

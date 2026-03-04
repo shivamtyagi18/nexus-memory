@@ -1,7 +1,7 @@
 """
 NEXUS v2 — Vector Store.
 Embedding generation + similarity search abstraction.
-Uses sentence-transformers for embeddings, NumPy for search (FAISS-optional upgrade).
+Uses sentence-transformers for embeddings, with FAISS (auto-detected) or NumPy for search.
 """
 
 from __future__ import annotations
@@ -12,9 +12,17 @@ import json
 import threading
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
+
+# ── Auto-detect FAISS ────────────────────────────────────
+try:
+    import faiss
+    _HAS_FAISS = True
+    logger.info("FAISS detected — using accelerated vector search")
+except ImportError:
+    _HAS_FAISS = False
 
 
 @dataclass
@@ -28,10 +36,14 @@ class VectorEntry:
 class VectorStore:
     """
     In-process vector storage and similarity search.
-    
-    Uses sentence-transformers for embedding generation and NumPy for 
-    cosine similarity search. Designed as the "SQLite of vector databases" 
-    — no server needed, runs entirely in-process.
+
+    Uses sentence-transformers for embedding generation and either FAISS
+    (when available) or NumPy for cosine similarity search.
+
+    Backend selection:
+        - ``"auto"`` (default): FAISS if installed, else NumPy
+        - ``"faiss"``: Force FAISS (raises ImportError if not installed)
+        - ``"numpy"``: Force NumPy brute-force search
     """
 
     def __init__(
@@ -39,18 +51,37 @@ class VectorStore:
         model_name: str = "all-MiniLM-L6-v2",
         dimension: int = 384,
         storage_path: Optional[str] = None,
+        backend: str = "auto",
     ):
         self.model_name = model_name
         self.dimension = dimension
         self.storage_path = storage_path
         self._model = None
-        
+
+        # ── Backend selection ──
+        if backend == "auto":
+            self._use_faiss = _HAS_FAISS
+        elif backend == "faiss":
+            if not _HAS_FAISS:
+                raise ImportError(
+                    "FAISS backend requested but faiss-cpu is not installed. "
+                    "Install with: pip install faiss-cpu"
+                )
+            self._use_faiss = True
+        elif backend == "numpy":
+            self._use_faiss = False
+        else:
+            raise ValueError(f"Unknown backend: {backend!r}. Use 'auto', 'faiss', or 'numpy'.")
+
         # In-memory storage
         self._vectors: Dict[str, VectorEntry] = {}
-        self._matrix: Optional[np.ndarray] = None  # Cache for batch search
+        self._matrix: Optional[np.ndarray] = None  # Cache for NumPy search
         self._matrix_ids: List[str] = []
         self._matrix_dirty = True
         self._lock = threading.Lock()
+
+        # FAISS index (created lazily)
+        self._faiss_index: Optional[faiss.IndexFlatIP] = None if self._use_faiss else None
 
         # Load persisted data if available
         if storage_path:
@@ -60,6 +91,11 @@ class VectorStore:
                 self._load(storage_path)
             elif os.path.exists(json_path) or os.path.exists(npy_path):
                 logger.warning(f"Partial vector store files in {storage_path}, skipping load")
+
+    @property
+    def backend(self) -> str:
+        """Return the active search backend name."""
+        return "faiss" if self._use_faiss else "numpy"
 
     @property
     def model(self):
@@ -148,7 +184,7 @@ class VectorStore:
         if len(self._vectors) == 0:
             return []
 
-        # Rebuild matrix cache if needed
+        # Rebuild index if needed
         with self._lock:
             if self._matrix_dirty:
                 self._rebuild_matrix()
@@ -159,10 +195,23 @@ class VectorStore:
         if query_vector.ndim == 1:
             query_vector = query_vector.reshape(1, -1)
 
-        # Cosine similarity (vectors are already normalized)
+        if self._use_faiss and self._faiss_index is not None:
+            return self._search_faiss(query_vector, matrix_ids, top_k, min_score, filter_ids)
+        else:
+            return self._search_numpy(query_vector, matrix, matrix_ids, top_k, min_score, filter_ids)
+
+    def _search_numpy(
+        self,
+        query_vector: np.ndarray,
+        matrix: np.ndarray,
+        matrix_ids: List[str],
+        top_k: int,
+        min_score: float,
+        filter_ids: Optional[Set[str]],
+    ) -> List[Tuple[str, float]]:
+        """NumPy brute-force cosine similarity search."""
         similarities = np.dot(matrix, query_vector.T).flatten()
 
-        # Apply filters
         results = []
         for idx, score in enumerate(similarities):
             id = matrix_ids[idx]
@@ -170,9 +219,35 @@ class VectorStore:
                 if filter_ids is None or id in filter_ids:
                     results.append((id, float(score)))
 
-        # Sort by score descending
         results.sort(key=lambda x: x[1], reverse=True)
         return results[:top_k]
+
+    def _search_faiss(
+        self,
+        query_vector: np.ndarray,
+        matrix_ids: List[str],
+        top_k: int,
+        min_score: float,
+        filter_ids: Optional[Set[str]],
+    ) -> List[Tuple[str, float]]:
+        """FAISS accelerated inner-product search."""
+        # When filter_ids is set, we need to search more broadly then filter
+        search_k = min(top_k * 4, len(matrix_ids)) if filter_ids else min(top_k, len(matrix_ids))
+
+        scores, indices = self._faiss_index.search(query_vector, search_k)
+
+        results = []
+        for score, idx in zip(scores[0], indices[0]):
+            if idx == -1:  # FAISS sentinel for "no more results"
+                break
+            id = matrix_ids[idx]
+            if score >= min_score:
+                if filter_ids is None or id in filter_ids:
+                    results.append((id, float(score)))
+                    if len(results) >= top_k:
+                        break
+
+        return results
 
     def semantic_drift(self, vector_a: np.ndarray, vector_b: np.ndarray) -> float:
         """Compute how much two vectors have drifted apart (0=identical, 1=orthogonal)."""
@@ -227,14 +302,21 @@ class VectorStore:
     # ── Internal ─────────────────────────────────────────
 
     def _rebuild_matrix(self):
-        """Rebuild the search matrix from stored vectors."""
+        """Rebuild the search matrix (and FAISS index if applicable)."""
         if len(self._vectors) == 0:
             self._matrix = np.empty((0, self.dimension), dtype=np.float32)
             self._matrix_ids = []
+            if self._use_faiss:
+                self._faiss_index = faiss.IndexFlatIP(self.dimension)
         else:
             self._matrix_ids = list(self._vectors.keys())
             self._matrix = np.array(
                 [self._vectors[id].vector for id in self._matrix_ids],
                 dtype=np.float32,
             )
+
+            if self._use_faiss:
+                self._faiss_index = faiss.IndexFlatIP(self.dimension)
+                self._faiss_index.add(self._matrix)
+
         self._matrix_dirty = False

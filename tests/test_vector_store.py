@@ -116,3 +116,52 @@ class TestSemanticDrift:
         v2 = vector_store.embed("quantum physics")
         drift = vector_store.semantic_drift(v1, v2)
         assert drift > 0.3  # Should be quite different
+
+
+class TestBackendSelection:
+    def test_backend_property(self, vector_store):
+        assert vector_store.backend in ("numpy", "faiss")
+
+    def test_force_numpy(self, tmp_dir):
+        vs = VectorStore(
+            storage_path=os.path.join(tmp_dir, "numpy_vs"),
+            backend="numpy",
+        )
+        assert vs.backend == "numpy"
+
+    def test_force_faiss_when_available(self, tmp_dir):
+        try:
+            import faiss
+            vs = VectorStore(
+                storage_path=os.path.join(tmp_dir, "faiss_vs"),
+                backend="faiss",
+            )
+            assert vs.backend == "faiss"
+        except ImportError:
+            pytest.skip("faiss-cpu not installed")
+
+    def test_invalid_backend_rejected(self, tmp_dir):
+        with pytest.raises(ValueError, match="Unknown backend"):
+            VectorStore(storage_path=os.path.join(tmp_dir, "bad_vs"), backend="qdrant")
+
+    def test_faiss_search_matches_numpy(self, tmp_dir):
+        """Both backends should return the same top result for a query."""
+        try:
+            import faiss
+        except ImportError:
+            pytest.skip("faiss-cpu not installed")
+
+        np_vs = VectorStore(storage_path=os.path.join(tmp_dir, "np"), backend="numpy")
+        fa_vs = VectorStore(storage_path=os.path.join(tmp_dir, "fa"), backend="faiss")
+
+        texts = ["cats are furry pets", "dogs are loyal companions", "python programming"]
+        for i, text in enumerate(texts):
+            vec = np_vs.embed(text)
+            np_vs.add(id=f"v{i}", vector=vec)
+            fa_vs.add(id=f"v{i}", vector=vec)
+
+        np_results = np_vs.search(query="feline animals", top_k=1)
+        fa_results = fa_vs.search(query="feline animals", top_k=1)
+
+        assert np_results[0][0] == fa_results[0][0]  # Same top result
+        assert np_results[0][1] == pytest.approx(fa_results[0][1], abs=0.01)  # Same score
