@@ -41,8 +41,9 @@ NEXUS combines a capacity-bounded Working Memory, a graph-based Semantic Palace,
                  └──────────┘   └───────────────────┘
 ```
 
-**Core idea:** Fast, heuristic encoding (System 1) handles real-time ingestion, while slow, analytical consolidation (System 2) runs asynchronously in the background — inspired by human Dual-Process Theory.
-
+**Core idea:** Inspired by human Dual-Process Theory (Daniel Kahneman's *Thinking, Fast and Slow*), NEXUS decouples memory operations into two pathways:
+- **System 1 (Fast & Heuristic):** Real-time ingestion. Routes interactions to the short-term Episode Buffer in milliseconds without blocking the agent.
+- **System 2 (Slow & Analytical):** Background consolidation. Uses LLM reasoning to chunk, organize, and abstract semantic knowledge asynchronously while the agent is idle.
 ---
 
 ## Installation
