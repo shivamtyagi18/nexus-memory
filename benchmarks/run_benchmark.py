@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 NEXUS v2 Benchmark Runner
-Run: python3.11 benchmarks/run_benchmark.py --dataset locomo --output results/
+Run: python benchmarks/run_benchmark.py --dataset locomo --output results/
+
+OpenAI:
+  python benchmarks/run_benchmark.py --model gpt-4o-mini --openai-key sk-... --consolidate
+
+Ollama (local):
+  python benchmarks/run_benchmark.py --model mistral --ollama-url http://localhost:11434
 """
 
 import argparse
@@ -10,6 +16,13 @@ import logging
 import os
 import sys
 import shutil
+
+# Load .env file if python-dotenv is available
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+except ImportError:
+    pass  # dotenv not installed, rely on env vars or --openai-key flag
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -97,7 +110,21 @@ def main():
     )
     parser.add_argument(
         "--model", type=str, default="mistral",
-        help="Ollama model to use for system backbone",
+        help="Model name (e.g. mistral, gpt-4o-mini, gpt-4o, gemini-2.0-flash, claude-3-5-sonnet-20241022)",
+    )
+    parser.add_argument(
+        "--openai-key", type=str,
+        default=os.environ.get("OPENAI_API_KEY"),
+        help="OpenAI API key (or set OPENAI_API_KEY env var)",
+    )
+    parser.add_argument(
+        "--gemini-key", type=str,
+        default=os.environ.get("GEMINI_API_KEY"),
+        help="Gemini API key (or set GEMINI_API_KEY env var)",
+    )
+    parser.add_argument(
+        "--consolidate", action="store_true",
+        help="Run NEXUS consolidation after ingest (tests the full pipeline)",
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true",
@@ -112,7 +139,16 @@ def main():
     llm = LLMInterface(
         ollama_base_url=args.ollama_url,
         default_model=args.model,
+        openai_api_key=args.openai_key,
+        gemini_api_key=args.gemini_key,
     )
+
+    if args.model.startswith("gpt-") and not args.openai_key:
+        logger.error("OpenAI model selected but no API key provided. Use --openai-key or set OPENAI_API_KEY.")
+        sys.exit(1)
+    if args.model.startswith("gemini") and not args.gemini_key:
+        logger.error("Gemini model selected but no API key provided. Use --gemini-key or set GEMINI_API_KEY.")
+        sys.exit(1)
 
     # Load dataset
     logger.info(f"Loading dataset: {args.dataset}")
@@ -139,6 +175,7 @@ def main():
         llm=llm,
         use_llm_judge=args.llm_judge,
         output_dir=args.output,
+        consolidate=args.consolidate,
     )
 
     report = harness.run()

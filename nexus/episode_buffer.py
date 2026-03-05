@@ -107,8 +107,40 @@ class EpisodeBuffer:
         return episode.id
 
     def get(self, episode_id: str) -> Optional[Episode]:
-        """Get a specific episode by ID."""
-        return self._episodes.get(episode_id)
+        """Get a specific episode by ID. Falls back to DB for consolidated episodes."""
+        ep = self._episodes.get(episode_id)
+        if ep is not None:
+            return ep
+
+        # Fallback: query SQLite for consolidated episodes not in RAM
+        try:
+            cursor = self._conn.execute(
+                "SELECT * FROM episodes WHERE id = ?", (episode_id,)
+            )
+            row = cursor.fetchone()
+            if row:
+                salience_data = json.loads(row[3]) if row[3] else {}
+                return Episode(
+                    id=row[0],
+                    content=row[1],
+                    timestamp=datetime.fromisoformat(row[2]),
+                    salience=SalienceScore(
+                        surprise=salience_data.get("surprise", 0),
+                        relevance=salience_data.get("relevance", 0),
+                        emotional=salience_data.get("emotional", 0),
+                        novelty=salience_data.get("novelty", 0),
+                        utility=salience_data.get("utility", 0),
+                    ),
+                    source=MemorySource(row[4]) if row[4] else MemorySource.DIRECT,
+                    trajectory_id=row[5],
+                    trajectory_step=row[6] or 0,
+                    reflections=json.loads(row[7]) if row[7] else [],
+                    consolidated=bool(row[8]),
+                    metadata=json.loads(row[9]) if row[9] else {},
+                )
+        except Exception as e:
+            logger.error(f"Failed to fetch episode {episode_id} from DB: {e}")
+        return None
 
     def remove(self, episode_id: str):
         """Remove an episode from the buffer."""

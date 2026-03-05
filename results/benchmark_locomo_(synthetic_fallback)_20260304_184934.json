@@ -1,0 +1,207 @@
+{
+  "dataset": "LoCoMo (synthetic fallback)",
+  "timestamp": "2026-03-04T18:49:34.735923",
+  "total_time_seconds": 54.82546877861023,
+  "systems": {
+    "NEXUS_v2": {
+      "ingest_time_seconds": 5.1734299659729,
+      "consolidation_time_seconds": 46.84036374092102,
+      "messages_ingested": 8,
+      "questions": [
+        {
+          "question_id": "q1",
+          "question": "What company does Alex work at?",
+          "reference": "TechCorp",
+          "prediction": "Alex works at TechCorp.",
+          "category": "single_hop",
+          "confidence": 0.5119444435341468,
+          "metrics": {
+            "f1": 0.4,
+            "exact_match": 0.0,
+            "latency_ms": 1337.240219116211,
+            "tokens_used": 8,
+            "answer_length": 23
+          }
+        },
+        {
+          "question_id": "q2",
+          "question": "What database do they use?",
+          "reference": "PostgreSQL",
+          "prediction": "They use PostgreSQL for their REST API's database.",
+          "category": "single_hop",
+          "confidence": 0.3766666658598659,
+          "metrics": {
+            "f1": 0.2222222222222222,
+            "exact_match": 0.0,
+            "latency_ms": 1471.2347984313965,
+            "tokens_used": 15,
+            "answer_length": 50
+          }
+        }
+      ],
+      "aggregate": {
+        "f1_mean": 0.3111111111111111,
+        "f1_min": 0.2222222222222222,
+        "f1_max": 0.4,
+        "exact_match_mean": 0.0,
+        "exact_match_min": 0.0,
+        "exact_match_max": 0.0,
+        "latency_ms_mean": 1404.2375087738037,
+        "latency_ms_min": 1337.240219116211,
+        "latency_ms_max": 1471.2347984313965,
+        "tokens_used_mean": 11.5,
+        "tokens_used_min": 8,
+        "tokens_used_max": 15,
+        "answer_length_mean": 36.5,
+        "answer_length_min": 23,
+        "answer_length_max": 50,
+        "total_questions": 2
+      },
+      "by_category": {
+        "single_hop": {
+          "f1_mean": 0.3111111111111111,
+          "f1_min": 0.2222222222222222,
+          "f1_max": 0.4,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 1404.2375087738037,
+          "latency_ms_min": 1337.240219116211,
+          "latency_ms_max": 1471.2347984313965,
+          "tokens_used_mean": 11.5,
+          "tokens_used_min": 8,
+          "tokens_used_max": 15,
+          "answer_length_mean": 36.5,
+          "answer_length_min": 23,
+          "answer_length_max": 50,
+          "total_questions": 2
+        }
+      },
+      "system_stats": {
+        "name": "NEXUS_v2",
+        "messages_ingested": 8,
+        "queries_answered": 2,
+        "avg_latency_ms": 1404.2375087738037,
+        "palace": {
+          "room_count": 5,
+          "memory_count": 11,
+          "edge_count": 3,
+          "landmark_count": 0,
+          "avg_room_size": 2.2,
+          "max_room_size": 3,
+          "connected_rooms": 4,
+          "isolated_rooms": 1
+        },
+        "working_memory": {
+          "slots_used": 7,
+          "max_slots": 7,
+          "active_chunks": 4,
+          "suggestions_pending": 0,
+          "warnings_pending": 0,
+          "total_evictions": 1
+        },
+        "retrieval": {
+          "total_retrievals": 2,
+          "avg_latency_ms": 18.341898918151855,
+          "p95_latency_ms": 18.69368553161621,
+          "avg_results_per_query": 5.0
+        },
+        "consolidation": {
+          "last_consolidation": "2026-03-04T18:49:31.925425",
+          "total_consolidations": 1,
+          "tombstones": 0,
+          "skills_extracted": 0,
+          "unconsolidated_episodes": 2
+        },
+        "meta_memory": {
+          "total_rooms": 5,
+          "active_gaps": 0,
+          "resolved_gaps": 0,
+          "failed_retrievals": 1
+        },
+        "episode_buffer": {
+          "total_episodes": 8,
+          "unconsolidated": 2
+        },
+        "vector_store": {
+          "total_vectors": 24
+        },
+        "metrics": {
+          "uptime_seconds": 54.8,
+          "operations": {
+            "encode": {
+              "total": 8,
+              "discarded": 0,
+              "latency_ms": {
+                "count": 8,
+                "sum": 5173.12,
+                "avg": 646.64,
+                "min": 29.43,
+                "max": 4919.32,
+                "p50": 38.11,
+                "p95": 4919.32,
+                "p99": 4919.32
+              }
+            },
+            "recall": {
+              "total": 2,
+              "empty": 0,
+              "latency_ms": {
+                "count": 2,
+                "sum": 358.3,
+                "avg": 179.15,
+                "min": 60.98,
+                "max": 297.32,
+                "p50": 297.32,
+                "p95": 297.32,
+                "p99": 297.32
+              }
+            },
+            "consolidation": {
+              "total": 0,
+              "errors": 0,
+              "latency_s": {
+                "count": 0,
+                "sum": 0,
+                "avg": 0,
+                "min": 0,
+                "max": 0,
+                "p50": 0,
+                "p95": 0,
+                "p99": 0
+              }
+            },
+            "llm": {
+              "total_calls": 17,
+              "errors": 0,
+              "latency_ms": {
+                "count": 17,
+                "sum": 48816.57,
+                "avg": 2871.56,
+                "min": 1033.61,
+                "max": 9503.15,
+                "p50": 2358.9,
+                "p95": 9503.15,
+                "p99": 9503.15
+              }
+            }
+          },
+          "state": {
+            "memories": 11,
+            "rooms": 5,
+            "episodes": 8,
+            "vectors": 24,
+            "working_memory_slots_used": 7
+          }
+        }
+      }
+    }
+  },
+  "comparison": {
+    "NEXUS_v2": {
+      "f1_mean": 0.3111111111111111,
+      "latency_mean_ms": 1404.2375087738037,
+      "tokens_mean": 11.5
+    }
+  }
+}

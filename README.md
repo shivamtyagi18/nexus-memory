@@ -4,7 +4,7 @@
 
 NEXUS combines a capacity-bounded Working Memory, a graph-based Semantic Palace, and asynchronous background consolidation to give LLM agents persistent, scalable memory — without blocking real-time interactions.
 
-> 📄 **Paper:** *NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents* — Shivam Tyagi, 2025 — [DOI: 10.13140/RG.2.2.16984.35848](https://doi.org/10.13140/RG.2.2.16984.35848)
+> 📄 **Paper:** *NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents* — Shivam Tyagi, 2025 — [DOI: 10.13140/RG.2.2.25477.82407](https://doi.org/10.13140/RG.2.2.25477.82407)
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -278,7 +278,7 @@ If you use NEXUS in your research, please cite:
   title={NEXUS: A Scalable, Neuro-Inspired Architecture for Long-Term Event Memory in LLM Agents},
   author={Tyagi, Shivam},
   year={2025},
-  doi={10.13140/RG.2.2.16984.35848}
+  doi={10.13140/RG.2.2.25477.82407}
 }
 ```
 

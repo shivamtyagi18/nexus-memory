@@ -45,7 +45,10 @@ htmlcov/
 paper2.pdf
 paper2.txt
 
-# Agent workspace
+# Secrets
+.env
+
+# Agent workspaces
 .gemini/
 .agent/
 _agent/

@@ -140,7 +140,8 @@ class ConsolidationEngine:
         now = datetime.now()
 
         for memory in list(self.palace.memories.values()):
-            if memory.status != MemoryStatus.ACTIVE:
+            # Skip inactive statuses, but allow PINNED through for review
+            if memory.status not in (MemoryStatus.ACTIVE, MemoryStatus.PINNED):
                 continue
 
             # Check if due for review
@@ -150,12 +151,12 @@ class ConsolidationEngine:
             # Compute utility-based decay
             decay_score = self._compute_utility_decay(memory, now)
             
-            if decay_score < 0.3:
-                # Low utility — apply decay
+            if decay_score < 0.3 and memory.status != MemoryStatus.PINNED:
+                # Low utility — apply decay (never decay PINNED memories)
                 memory.decay(0.9)
                 decayed += 1
             else:
-                # Still useful — schedule next review
+                # Still useful (or pinned) — schedule next review
                 days = 2 ** memory.consecutive_successful_reviews
                 days = min(days, 180)
                 memory.next_review = now + timedelta(days=days)

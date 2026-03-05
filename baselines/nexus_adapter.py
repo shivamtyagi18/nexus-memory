@@ -24,6 +24,11 @@ class NexusAdapter(BaseMemorySystem):
         super().__init__("NEXUS_v2", llm)
         self.config = config or NexusConfig()
         self.nexus = NEXUS(self.config)
+        # Override NEXUS's internal LLM with the benchmark's LLM
+        # so queries and consolidation use the same model (e.g. gpt-4o-mini)
+        self.nexus.llm = llm
+        self.nexus.attention_gate.llm = llm
+        self.nexus.consolidation_engine.llm = llm
 
     def ingest(self, message: str, role: str = "user", metadata: Optional[Dict] = None):
         source = MemorySource.USER_STATED if role == "user" else MemorySource.DIRECT
@@ -76,6 +81,15 @@ Answer:"""
         if os.path.exists(self.config.storage_path):
             shutil.rmtree(self.config.storage_path, ignore_errors=True)
         self.nexus = NEXUS(self.config)
+        # Re-inject benchmark LLM
+        self.nexus.llm = self.llm
+        self.nexus.attention_gate.llm = self.llm
+        self.nexus.consolidation_engine.llm = self.llm
+
+    def run_consolidation(self):
+        """Run FULL consolidation on the NEXUS memory system."""
+        from nexus.models import ConsolidationDepth
+        self.nexus.consolidation_engine.consolidate(depth=ConsolidationDepth.FULL)
 
     def get_stats(self) -> Dict:
         base = super().get_stats()

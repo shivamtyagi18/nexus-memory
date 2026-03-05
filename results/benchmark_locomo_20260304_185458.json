@@ -1,0 +1,474 @@
+{
+  "dataset": "LoCoMo",
+  "timestamp": "2026-03-04T18:54:58.668550",
+  "total_time_seconds": 131.48523998260498,
+  "systems": {
+    "NEXUS_v2": {
+      "ingest_time_seconds": 5.778059720993042,
+      "consolidation_time_seconds": 87.83796310424805,
+      "messages_ingested": 28,
+      "questions": [
+        {
+          "question_id": "q1",
+          "question": "What is Alex's job title?",
+          "reference": "Senior Engineer (was promoted from Software Engineer)",
+          "prediction": "Alex's job title is a Software Engineer (initially) and after the promotion, his job title became Senior Engineer.",
+          "category": "single_hop",
+          "confidence": 0.5431249987368878,
+          "metrics": {
+            "f1": 0.28571428571428575,
+            "exact_match": 0.0,
+            "latency_ms": 2340.247869491577,
+            "tokens_used": 28,
+            "answer_length": 114
+          }
+        },
+        {
+          "question_id": "q2",
+          "question": "What company does Alex work at?",
+          "reference": "TechCorp",
+          "prediction": "Alex works at TechCorp.",
+          "category": "single_hop",
+          "confidence": 0.5226388881589688,
+          "metrics": {
+            "f1": 0.4,
+            "exact_match": 0.0,
+            "latency_ms": 1031.1338901519775,
+            "tokens_used": 8,
+            "answer_length": 23
+          }
+        },
+        {
+          "question_id": "q3",
+          "question": "What was Alex's marathon time?",
+          "reference": "3 hours 45 minutes",
+          "prediction": "Alex finished the marathon in 3 hours and 45 minutes.",
+          "category": "single_hop",
+          "confidence": 0.5431249990182886,
+          "metrics": {
+            "f1": 0.5714285714285715,
+            "exact_match": 0.0,
+            "latency_ms": 1607.6579093933105,
+            "tokens_used": 16,
+            "answer_length": 53
+          }
+        },
+        {
+          "question_id": "q4",
+          "question": "Who is Alex's manager?",
+          "reference": "Sarah",
+          "prediction": "The question does not provide information about who Alex's manager is. However, it can be inferred that the person who congratulated Alex on his promotion might be his manager or a higher-up within the company structure at TechCorp. But without explicit information, it cannot be definitively stated who Alex's manager is based on these memories.",
+          "category": "single_hop",
+          "confidence": 0.5344027768980544,
+          "metrics": {
+            "f1": 0.0,
+            "exact_match": 0.0,
+            "latency_ms": 3948.0502605438232,
+            "tokens_used": 73,
+            "answer_length": 346
+          }
+        },
+        {
+          "question_id": "q5",
+          "question": "Who is Alex's wife?",
+          "reference": "Emily",
+          "prediction": "Emily",
+          "category": "single_hop",
+          "confidence": 0.4070083325814473,
+          "metrics": {
+            "f1": 1.0,
+            "exact_match": 1.0,
+            "latency_ms": 945.8379745483398,
+            "tokens_used": 2,
+            "answer_length": 5
+          }
+        },
+        {
+          "question_id": "q6",
+          "question": "What database does Alex's team currently use, considering all changes?",
+          "reference": "CockroachDB (migrated from PostgreSQL)",
+          "prediction": "Considering the changes mentioned in the memories, Alex's team initially used PostgreSQL for their REST API project at TechCorp. However, they are switching to CockroachDB for better horizontal scaling. So, the current database being used by Alex's team is CockroachDB.",
+          "category": "multi_hop",
+          "confidence": 0.5379106247065489,
+          "metrics": {
+            "f1": 0.10810810810810813,
+            "exact_match": 0.0,
+            "latency_ms": 3697.6728439331055,
+            "tokens_used": 65,
+            "answer_length": 269
+          }
+        },
+        {
+          "question_id": "q7",
+          "question": "What API technology is Alex's team currently using?",
+          "reference": "GraphQL (migrating from REST)",
+          "prediction": "The API technology that Alex's team is currently using is REST API, as mentioned in the first memory.",
+          "category": "multi_hop",
+          "confidence": 0.5879790484231733,
+          "metrics": {
+            "f1": 0.10526315789473685,
+            "exact_match": 0.0,
+            "latency_ms": 1918.5638427734375,
+            "tokens_used": 24,
+            "answer_length": 101
+          }
+        },
+        {
+          "question_id": "q8",
+          "question": "Did Alex run the marathon before or after the database incident?",
+          "reference": "After \u2014 the database incident was in session 3, marathon was in session 4",
+          "prediction": "The question does not provide information about a \"database incident.\" Therefore, it is impossible to determine if Alex ran the marathon before or after the hypothetical incident.",
+          "category": "temporal",
+          "confidence": 0.5534374991254094,
+          "metrics": {
+            "f1": 0.29411764705882354,
+            "exact_match": 0.0,
+            "latency_ms": 2689.702272415161,
+            "tokens_used": 36,
+            "answer_length": 179
+          }
+        },
+        {
+          "question_id": "q9",
+          "question": "What happened first: the API launch or Alex's promotion?",
+          "reference": "The API launch happened first",
+          "prediction": "The API launch happened first, as there is no information about Alex's promotion in the provided memories.",
+          "category": "temporal",
+          "confidence": 0.0,
+          "metrics": {
+            "f1": 0.47619047619047616,
+            "exact_match": 0.0,
+            "latency_ms": 1841.3927555084229,
+            "tokens_used": 22,
+            "answer_length": 106
+          }
+        },
+        {
+          "question_id": "q10",
+          "question": "What database does Alex use now? Note: there was a change.",
+          "reference": "CockroachDB \u2014 they switched from PostgreSQL for better horizontal scaling",
+          "prediction": "Alex now uses CockroachDB as the database, since they have switched from PostgreSQL for better horizontal scaling.",
+          "category": "knowledge_update",
+          "confidence": 0.4070083325550289,
+          "metrics": {
+            "f1": 0.6923076923076924,
+            "exact_match": 0.0,
+            "latency_ms": 2009.5229148864746,
+            "tokens_used": 26,
+            "answer_length": 114
+          }
+        },
+        {
+          "question_id": "q11",
+          "question": "What programming language does Alex's wife use?",
+          "reference": "This information was never mentioned",
+          "prediction": "The provided memories do not contain any information about the programming language that Alex's wife uses.",
+          "category": "abstention",
+          "confidence": 0.6134827556037725,
+          "metrics": {
+            "f1": 0.1,
+            "exact_match": 0.0,
+            "latency_ms": 1729.8979759216309,
+            "tokens_used": 20,
+            "answer_length": 106
+          }
+        },
+        {
+          "question_id": "q12",
+          "question": "What is Alex's salary?",
+          "reference": "This information was never mentioned",
+          "prediction": "The memories provided do not contain any information about Alex's salary.",
+          "category": "abstention",
+          "confidence": 0.634331031024518,
+          "metrics": {
+            "f1": 0.12500000000000003,
+            "exact_match": 0.0,
+            "latency_ms": 908.6999893188477,
+            "tokens_used": 15,
+            "answer_length": 73
+          }
+        },
+        {
+          "question_id": "q13",
+          "question": "How did Alex's manager help his career?",
+          "reference": "Sarah recommended Alex for promotion to Senior Engineer and was impressed by his disaster recovery plan",
+          "prediction": "The provided memories do not directly mention any specific actions taken by Alex's manager that contributed to his promotion. However, it can be inferred that the manager might have recognized and appreciated Alex's work, which led to him being promoted to Senior Engineer.",
+          "category": "multi_hop",
+          "confidence": 0.6832344015502705,
+          "metrics": {
+            "f1": 0.2641509433962264,
+            "exact_match": 0.0,
+            "latency_ms": 2658.1063270568848,
+            "tokens_used": 54,
+            "answer_length": 273
+          }
+        },
+        {
+          "question_id": "q14",
+          "question": "Describe the evolution of Alex's backend technology stack.",
+          "reference": "Started with Python + REST API + PostgreSQL, then migrated API to GraphQL, then database to CockroachDB",
+          "prediction": "Initially, Alex was working with a REST API and PostgreSQL as the database at TechCorp. However, there is a planned evolution in their technology stack where they are transitioning from PostgreSQL to CockroachDB for better horizontal scaling. This change suggests an aim for improved scalability and potentially more robust data management in their backend system.",
+          "category": "multi_hop",
+          "confidence": 0.6549999992386647,
+          "metrics": {
+            "f1": 0.22950819672131142,
+            "exact_match": 0.0,
+            "latency_ms": 4339.963674545288,
+            "tokens_used": 75,
+            "answer_length": 364
+          }
+        },
+        {
+          "question_id": "q15",
+          "question": "What were Alex's major achievements in the conversations?",
+          "reference": "Launched API platform with 50 enterprise signups, recovered from database corruption in 2 hours, ran Boston Marathon in 3:45, got promoted to Senior Engineer",
+          "prediction": "The memories provided do not explicitly mention any specific major achievements of Alex. However, they imply that Alex is a software engineer at TechCorp and has been doing great work, which likely means he has achieved success in his professional life at TechCorp. Additionally, it's mentioned that his wife Emily was cheering for him at mile 20, suggesting that he might have accomplished something significant enough to warrant support during a race or similar event. Without more context, it is difficult to pinpoint the exact nature of Alex's achievements.",
+          "category": "multi_hop",
+          "confidence": 0.5227597245253033,
+          "metrics": {
+            "f1": 0.061855670103092786,
+            "exact_match": 0.0,
+            "latency_ms": 6193.706035614014,
+            "tokens_used": 111,
+            "answer_length": 561
+          }
+        }
+      ],
+      "aggregate": {
+        "f1_mean": 0.314242983261555,
+        "f1_min": 0.0,
+        "f1_max": 1.0,
+        "exact_match_mean": 0.06666666666666667,
+        "exact_match_min": 0.0,
+        "exact_match_max": 1.0,
+        "latency_ms_mean": 2524.010435740153,
+        "latency_ms_min": 908.6999893188477,
+        "latency_ms_max": 6193.706035614014,
+        "tokens_used_mean": 38.333333333333336,
+        "tokens_used_min": 2,
+        "tokens_used_max": 111,
+        "answer_length_mean": 179.13333333333333,
+        "answer_length_min": 5,
+        "answer_length_max": 561,
+        "total_questions": 15
+      },
+      "by_category": {
+        "single_hop": {
+          "f1_mean": 0.4514285714285714,
+          "f1_min": 0.0,
+          "f1_max": 1.0,
+          "exact_match_mean": 0.2,
+          "exact_match_min": 0.0,
+          "exact_match_max": 1.0,
+          "latency_ms_mean": 1974.5855808258057,
+          "latency_ms_min": 945.8379745483398,
+          "latency_ms_max": 3948.0502605438232,
+          "tokens_used_mean": 25.4,
+          "tokens_used_min": 2,
+          "tokens_used_max": 73,
+          "answer_length_mean": 108.2,
+          "answer_length_min": 5,
+          "answer_length_max": 346,
+          "total_questions": 5
+        },
+        "multi_hop": {
+          "f1_mean": 0.15377721524469512,
+          "f1_min": 0.061855670103092786,
+          "f1_max": 0.2641509433962264,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 3761.602544784546,
+          "latency_ms_min": 1918.5638427734375,
+          "latency_ms_max": 6193.706035614014,
+          "tokens_used_mean": 65.8,
+          "tokens_used_min": 24,
+          "tokens_used_max": 111,
+          "answer_length_mean": 313.6,
+          "answer_length_min": 101,
+          "answer_length_max": 561,
+          "total_questions": 5
+        },
+        "temporal": {
+          "f1_mean": 0.3851540616246498,
+          "f1_min": 0.29411764705882354,
+          "f1_max": 0.47619047619047616,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 2265.547513961792,
+          "latency_ms_min": 1841.3927555084229,
+          "latency_ms_max": 2689.702272415161,
+          "tokens_used_mean": 29.0,
+          "tokens_used_min": 22,
+          "tokens_used_max": 36,
+          "answer_length_mean": 142.5,
+          "answer_length_min": 106,
+          "answer_length_max": 179,
+          "total_questions": 2
+        },
+        "knowledge_update": {
+          "f1_mean": 0.6923076923076924,
+          "f1_min": 0.6923076923076924,
+          "f1_max": 0.6923076923076924,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 2009.5229148864746,
+          "latency_ms_min": 2009.5229148864746,
+          "latency_ms_max": 2009.5229148864746,
+          "tokens_used_mean": 26.0,
+          "tokens_used_min": 26,
+          "tokens_used_max": 26,
+          "answer_length_mean": 114.0,
+          "answer_length_min": 114,
+          "answer_length_max": 114,
+          "total_questions": 1
+        },
+        "abstention": {
+          "f1_mean": 0.11250000000000002,
+          "f1_min": 0.1,
+          "f1_max": 0.12500000000000003,
+          "exact_match_mean": 0.0,
+          "exact_match_min": 0.0,
+          "exact_match_max": 0.0,
+          "latency_ms_mean": 1319.2989826202393,
+          "latency_ms_min": 908.6999893188477,
+          "latency_ms_max": 1729.8979759216309,
+          "tokens_used_mean": 17.5,
+          "tokens_used_min": 15,
+          "tokens_used_max": 20,
+          "answer_length_mean": 89.5,
+          "answer_length_min": 73,
+          "answer_length_max": 106,
+          "total_questions": 2
+        }
+      },
+      "system_stats": {
+        "name": "NEXUS_v2",
+        "messages_ingested": 28,
+        "queries_answered": 15,
+        "avg_latency_ms": 2524.010435740153,
+        "palace": {
+          "room_count": 19,
+          "memory_count": 36,
+          "edge_count": 18,
+          "landmark_count": 0,
+          "avg_room_size": 1.894736842105263,
+          "max_room_size": 4,
+          "connected_rooms": 19,
+          "isolated_rooms": 0
+        },
+        "working_memory": {
+          "slots_used": 7,
+          "max_slots": 7,
+          "active_chunks": 4,
+          "suggestions_pending": 0,
+          "warnings_pending": 0,
+          "total_evictions": 27
+        },
+        "retrieval": {
+          "total_retrievals": 15,
+          "avg_latency_ms": 20.775906244913738,
+          "p95_latency_ms": 28.26666831970215,
+          "avg_results_per_query": 5.0
+        },
+        "consolidation": {
+          "last_consolidation": "2026-03-04T18:54:20.801317",
+          "total_consolidations": 1,
+          "tombstones": 0,
+          "skills_extracted": 0,
+          "unconsolidated_episodes": 11
+        },
+        "meta_memory": {
+          "total_rooms": 19,
+          "active_gaps": 0,
+          "resolved_gaps": 0,
+          "failed_retrievals": 4
+        },
+        "episode_buffer": {
+          "total_episodes": 28,
+          "unconsolidated": 11
+        },
+        "vector_store": {
+          "total_vectors": 83
+        },
+        "metrics": {
+          "uptime_seconds": 131.5,
+          "operations": {
+            "encode": {
+              "total": 28,
+              "discarded": 0,
+              "latency_ms": {
+                "count": 28,
+                "sum": 5777.13,
+                "avg": 206.33,
+                "min": 12.41,
+                "max": 5011.09,
+                "p50": 29.96,
+                "p95": 46.86,
+                "p99": 5011.09
+              }
+            },
+            "recall": {
+              "total": 15,
+              "empty": 0,
+              "latency_ms": {
+                "count": 15,
+                "sum": 1747.46,
+                "avg": 116.5,
+                "min": 42.8,
+                "max": 356.27,
+                "p50": 86.05,
+                "p95": 356.27,
+                "p99": 356.27
+              }
+            },
+            "consolidation": {
+              "total": 0,
+              "errors": 0,
+              "latency_s": {
+                "count": 0,
+                "sum": 0,
+                "avg": 0,
+                "min": 0,
+                "max": 0,
+                "p50": 0,
+                "p95": 0,
+                "p99": 0
+              }
+            },
+            "llm": {
+              "total_calls": 42,
+              "errors": 0,
+              "latency_ms": {
+                "count": 42,
+                "sum": 122133.57,
+                "avg": 2907.94,
+                "min": 778.46,
+                "max": 5936.48,
+                "p50": 2701.45,
+                "p95": 5026.09,
+                "p99": 5936.48
+              }
+            }
+          },
+          "state": {
+            "memories": 36,
+            "rooms": 19,
+            "episodes": 28,
+            "vectors": 83,
+            "working_memory_slots_used": 7
+          }
+        }
+      }
+    }
+  },
+  "comparison": {
+    "NEXUS_v2": {
+      "f1_mean": 0.314242983261555,
+      "latency_mean_ms": 2524.010435740153,
+      "tokens_mean": 38.333333333333336
+    }
+  }
+}

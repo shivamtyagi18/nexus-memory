@@ -37,12 +37,14 @@ class BenchmarkHarness:
         llm=None,
         use_llm_judge: bool = False,
         output_dir: str = "results",
+        consolidate: bool = False,
     ):
         self.systems = systems
         self.dataset = dataset
         self.llm = llm
         self.use_llm_judge = use_llm_judge
         self.output_dir = output_dir
+        self.consolidate = consolidate
         os.makedirs(output_dir, exist_ok=True)
 
     def run(self) -> Dict[str, Any]:
@@ -107,6 +109,15 @@ class BenchmarkHarness:
         ingest_time = time.time() - ingest_start
         logger.info(f"  Ingested {total_messages} messages in {ingest_time:.1f}s")
 
+        # Phase 1.5: Optional consolidation (NEXUS only)
+        consolidation_time = 0.0
+        if self.consolidate and hasattr(system, 'run_consolidation'):
+            logger.info(f"  Running consolidation...")
+            consol_start = time.time()
+            system.run_consolidation()
+            consolidation_time = time.time() - consol_start
+            logger.info(f"  Consolidation complete in {consolidation_time:.1f}s")
+
         # Phase 2: Answer questions
         question_results = []
         for i, question in enumerate(self.dataset.questions):
@@ -169,6 +180,7 @@ class BenchmarkHarness:
 
         return {
             "ingest_time_seconds": ingest_time,
+            "consolidation_time_seconds": consolidation_time,
             "messages_ingested": total_messages,
             "questions": question_results,
             "aggregate": aggregate,

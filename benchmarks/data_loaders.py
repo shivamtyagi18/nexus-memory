@@ -66,7 +66,9 @@ def load_locomo(
     # Try repo clone location first, then local data dir
     candidates = [
         os.path.join(data_path, "locomo10.json"),
+        os.path.join(data_path, "locomo.json"),
         "/tmp/locomo_repo/data/locomo10.json",
+        "/tmp/locomo_repo/data/locomo.json",
     ]
     dataset_file = None
     for path in candidates:
@@ -87,69 +89,96 @@ def load_locomo(
     total_turns = 0
 
     for conv_idx, conv in enumerate(raw_data[:max_conversations]):
-        sample_id = conv.get("sample_id", f"conv_{conv_idx}")
-        conversation = conv.get("conversation", {})
-        speaker_a = conversation.get("speaker_a", "User")
-        speaker_b = conversation.get("speaker_b", "Assistant")
+        sample_id = conv.get("sample_id", f"conv-{conv_idx}")
 
-        # Parse sessions
-        session_idx = 1
-        while True:
-            session_key = f"session_{session_idx}"
-            date_key = f"session_{session_idx}_date_time"
+        # Auto-detect format: snap-research raw vs pre-processed
+        if "conversation" in conv:
+            # ── Snap-research raw format ──
+            conversation = conv["conversation"]
+            speaker_a = conversation.get("speaker_a", "User")
+            speaker_b = conversation.get("speaker_b", "Assistant")
 
-            if session_key not in conversation:
-                break
+            session_idx = 1
+            while True:
+                session_key = f"session_{session_idx}"
+                date_key = f"session_{session_idx}_date_time"
 
-            session_data = conversation[session_key]
-            if not session_data:
-                session_idx += 1
-                continue
+                if session_key not in conversation:
+                    break
 
-            session_date = conversation.get(date_key, "")
-            messages = []
-
-            for turn in session_data:
-                speaker = turn.get("speaker", "")
-                text = turn.get("text", "")
-                if not text:
+                session_data = conversation[session_key]
+                if not session_data:
+                    session_idx += 1
                     continue
 
-                # Map speakers to roles
-                role = "user" if speaker == speaker_a else "assistant"
-                messages.append({"role": role, "content": text})
+                session_date = conversation.get(date_key, "")
+                messages = []
 
-            if messages:
-                sess_id = f"{sample_id}_s{session_idx}"
-                all_sessions.append(ConversationSession(
-                    session_id=sess_id,
-                    messages=messages,
-                    date_time=session_date,
+                for turn in session_data:
+                    speaker = turn.get("speaker", "")
+                    text = turn.get("text", "")
+                    if not text:
+                        continue
+
+                    role = "user" if speaker == speaker_a else "assistant"
+                    messages.append({"role": role, "content": text})
+
+                if messages:
+                    sess_id = f"{sample_id}_s{session_idx}"
+                    all_sessions.append(ConversationSession(
+                        session_id=sess_id,
+                        messages=messages,
+                        date_time=session_date,
+                    ))
+                    total_turns += len(messages)
+
+                session_idx += 1
+
+            # Parse QA pairs
+            qa_pairs = conv.get("qa", [])
+            for qi, qa in enumerate(qa_pairs[:max_questions_per_conv]):
+                category_num = qa.get("category", 0)
+                category = LOCOMO_CATEGORIES.get(category_num, f"cat_{category_num}")
+
+                answer = qa.get("answer", "")
+                if not isinstance(answer, str):
+                    answer = str(answer)
+
+                evidence = qa.get("evidence", [])
+
+                all_questions.append(BenchmarkQuestion(
+                    question_id=f"{sample_id}_q{qi}",
+                    question=qa.get("question", ""),
+                    reference_answer=answer,
+                    category=category,
+                    evidence_sessions=evidence,
                 ))
-                total_turns += len(messages)
 
-            session_idx += 1
+        elif "sessions" in conv:
+            # ── Pre-processed format (sessions + questions) ──
+            for sess in conv["sessions"]:
+                sess_id = sess.get("session_id", f"{sample_id}_s{len(all_sessions)}")
+                messages = sess.get("messages", [])
+                if messages:
+                    all_sessions.append(ConversationSession(
+                        session_id=sess_id,
+                        messages=messages,
+                        date_time=sess.get("date_time", ""),
+                    ))
+                    total_turns += len(messages)
 
-        # Parse QA pairs
-        qa_pairs = conv.get("qa", [])
-        for qi, qa in enumerate(qa_pairs[:max_questions_per_conv]):
-            category_num = qa.get("category", 0)
-            category = LOCOMO_CATEGORIES.get(category_num, f"cat_{category_num}")
+            for qi, qa in enumerate(conv.get("questions", [])[:max_questions_per_conv]):
+                answer = qa.get("answer", "")
+                if not isinstance(answer, str):
+                    answer = str(answer)
 
-            # Handle answer being a string or int
-            answer = qa.get("answer", "")
-            if not isinstance(answer, str):
-                answer = str(answer)
-
-            evidence = qa.get("evidence", [])
-
-            all_questions.append(BenchmarkQuestion(
-                question_id=f"{sample_id}_q{qi}",
-                question=qa.get("question", ""),
-                reference_answer=answer,
-                category=category,
-                evidence_sessions=evidence,
-            ))
+                all_questions.append(BenchmarkQuestion(
+                    question_id=qa.get("id", f"{sample_id}_q{qi}"),
+                    question=qa.get("question", ""),
+                    reference_answer=answer,
+                    category=qa.get("category", ""),
+                    evidence_sessions=qa.get("evidence", []),
+                ))
 
     logger.info(
         f"LoCoMo loaded: {len(all_sessions)} sessions, "

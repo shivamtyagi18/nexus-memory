@@ -259,27 +259,33 @@ class VectorStore:
     # ── Persistence ──────────────────────────────────────
 
     def save(self, path: Optional[str] = None):
-        """Save vectors to disk."""
+        """Save vectors to disk. Uses native FAISS persistence when available."""
         save_path = path or self.storage_path
         if not save_path:
             return
 
         os.makedirs(save_path, exist_ok=True)
 
-        # Save vectors as numpy
         if self._vectors:
             ids = list(self._vectors.keys())
             vectors = np.array([self._vectors[id].vector for id in ids])
             metadata = {id: self._vectors[id].metadata for id in ids}
 
+            # Always save NumPy format (portable fallback)
             np.save(os.path.join(save_path, "vectors.npy"), vectors)
             with open(os.path.join(save_path, "vectors.json"), "w") as f:
                 json.dump({"ids": ids, "metadata": metadata}, f)
 
+            # Also save native FAISS index for fast reload
+            if self._use_faiss and self._faiss_index is not None:
+                faiss_path = os.path.join(save_path, "vectors.faiss")
+                faiss.write_index(self._faiss_index, faiss_path)
+                logger.info(f"Saved FAISS index to {faiss_path}")
+
         logger.info(f"Saved {len(self._vectors)} vectors to {save_path}")
 
     def _load(self, path: str):
-        """Load vectors from disk."""
+        """Load vectors from disk. Uses native FAISS index when available."""
         try:
             with open(os.path.join(path, "vectors.json"), "r") as f:
                 data = json.load(f)
@@ -294,7 +300,18 @@ class VectorStore:
                     vector=vectors[i],
                     metadata=metadata.get(id, {}),
                 )
-            self._matrix_dirty = True
+
+            # Try loading native FAISS index (skip rebuild)
+            faiss_path = os.path.join(path, "vectors.faiss")
+            if self._use_faiss and os.path.exists(faiss_path):
+                self._faiss_index = faiss.read_index(faiss_path)
+                self._matrix_ids = ids
+                self._matrix = vectors.astype(np.float32)
+                self._matrix_dirty = False
+                logger.info(f"Loaded FAISS index from {faiss_path}")
+            else:
+                self._matrix_dirty = True
+
             logger.info(f"Loaded {len(self._vectors)} vectors from {path}")
         except Exception as e:
             logger.error(f"Failed to load vectors from {path}: {e}")
