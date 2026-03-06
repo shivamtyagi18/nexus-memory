@@ -2,6 +2,8 @@
 
 This document outlines the core internal process flows of the NEXUS memory system, specifically tracing the path of data from user input through ingestion, retrieval, and background consolidation. It is intended to help new engineers navigate the codebase and understand the Dual-Process architecture.
 
+*(Note: For documentation on attaching NEXUS to existing agent chains, see the `nexus/integrations/` module.)*
+
 ---
 
 ## 1. System 1: Real-Time Ingestion Flow (`memory.encode()`)

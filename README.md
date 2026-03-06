@@ -147,7 +147,33 @@ memory.consolidate()
 memory.save()
 ```
 
-See [`examples/quickstart.py`](examples/quickstart.py) for a complete working example.
+### Framework Integrations
+NEXUS can be used natively inside standard agent frameworks. 
+
+#### LangChain
+Use `NexusLangChainMemory` to replace `ConversationBufferMemory`. This gives your agent the cost-savings of a capacity-bounded Working Memory while asynchronously archiving the conversation into the Semantic Palace.
+
+```python
+from langchain.chains import ConversationChain
+from nexus.integrations.langchain_memory import NexusLangChainMemory
+from nexus import NEXUS
+
+# 1. Initialize NEXUS
+nexus_engine = NEXUS(storage_path="./langchain_nexus_db")
+
+# 2. Wrap it for LangChain
+nexus_memory = NexusLangChainMemory(nexus_client=nexus_engine, top_k=3)
+
+# 3. Plug it into standard chains
+conversation = ConversationChain(
+    llm=my_llm,
+    memory=nexus_memory,
+)
+
+conversation.predict(input="I prefer using PyTorch.")
+```
+
+See [`examples/langchain_agent.py`](examples/langchain_agent.py) or [`examples/quickstart.py`](examples/quickstart.py) for complete working code.
 
 ---
 
@@ -256,7 +282,9 @@ nexus-memory/
 │   ├── meta_memory.py     # Confidence mapping
 │   ├── vector_store.py    # Vector persistence
 │   ├── llm_interface.py   # Multi-provider LLM connector (Ollama/OpenAI/Anthropic/Gemini)
-│   └── metrics.py         # Observability: counters, gauges, histograms, Prometheus export
+│   ├── metrics.py         # Observability: counters, gauges, histograms, Prometheus export
+│   └── integrations/      # Framework adapters
+│       └── langchain_memory.py  # LangChain BaseMemory component
 ├── tests/                 # 159 tests across 13 files
 ├── baselines/             # Baseline implementations for comparison
 ├── benchmarks/            # Benchmark harness & scripts
