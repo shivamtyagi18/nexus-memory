@@ -67,7 +67,7 @@ class NexusLangChainHistory(BaseChatMessageHistory):
         
         # Ingest into NEXUS Long-Term Memory
         prefix = "Human: " if isinstance(message, HumanMessage) else "AI: "
-        self.nexus_client.encode(f"{prefix} {message.content}", auto_consolidate=True)
+        self.nexus_client.encode(f"{prefix} {message.content}")
 
     def clear(self) -> None:
         """Clear the local session window. (Does not clear long-term archival NEXUS storage)."""
