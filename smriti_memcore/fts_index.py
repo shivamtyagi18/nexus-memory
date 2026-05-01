@@ -1,3 +1,7 @@
+"""
+SMRITI v2 — FTS Index.
+SQLite FTS5 wrapper for keyword candidate generation.
+"""
 from __future__ import annotations
 
 import logging
@@ -65,12 +69,12 @@ class FTSIndex:
         self._conn.commit()
 
     def rebuild(self, memories: List[Memory]) -> None:
-        self._conn.execute("DELETE FROM memories")
-        self._conn.executemany(
-            "INSERT INTO memories(memory_id, content) VALUES (?, ?)",
-            [(m.id, m.content) for m in memories],
-        )
-        self._conn.commit()
+        with self._conn:
+            self._conn.execute("DELETE FROM memories")
+            self._conn.executemany(
+                "INSERT INTO memories(memory_id, content) VALUES (?, ?)",
+                [(m.id, m.content) for m in memories],
+            )
 
     def search(self, query: str, top_k: int = 20) -> List[Tuple[str, float]]:
         rows = self._conn.execute(
