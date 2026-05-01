@@ -5,7 +5,7 @@ import pytest
 import threading
 
 from smriti_memcore.models import SmritiConfig, MemorySource
-from smriti import SMRITI, SmritiMetrics
+from smriti_memcore import SMRITI, SmritiMetrics
 
 
 @pytest.fixture

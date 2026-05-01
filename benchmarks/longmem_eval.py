@@ -32,12 +32,12 @@ def compute_accuracy(prediction: str, ground_truth: str) -> float:
 from datetime import datetime
 from smriti_memcore.models import Episode, SalienceScore, MemorySource
 
-def process_case_smriti(test_case: Dict[str, Any], temp_dir: str) -> Dict[str, Any]:
+def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True) -> Dict[str, Any]:
     """Runs a single LongMemEval case through a SMRITI-augmented LangChain agent."""
-    
+
     import os
     from datetime import timedelta
-    
+
     # 1. Initialize SMRITI in a temporary isolation directory so nothing leaks between cases
     db_path = os.path.join(temp_dir, f"smriti_db_{test_case['question_id']}")
     config = SmritiConfig(
@@ -46,6 +46,8 @@ def process_case_smriti(test_case: Dict[str, Any], temp_dir: str) -> Dict[str, A
         openai_api_key=os.environ.get("OPENAI_API_KEY")
     )
     smriti_engine = SMRITI(config=config)
+    if not hybrid:
+        smriti_engine.retrieval_engine.fts_index = None
     
     # 2. Setup LangChain Environment
     smriti_history = SmritiLangChainHistory(smriti_client=smriti_engine, session_id="eval_session", top_k=5)
@@ -209,8 +211,10 @@ def main():
     parser.add_argument("--dataset", type=str, default="data/longmemeval/longmemeval_s_cleaned.json", help="Path to json dataset")
     parser.add_argument("--limit", type=int, default=5, help="Number of cases to evaluate (full set is 500)")
     parser.add_argument("--baseline", action="store_true", help="Run with standard ConversationBufferMemory instead of SMRITI")
+    parser.add_argument("--mode", choices=["hybrid", "vector"], default="hybrid",
+                        help="Retrieval mode for SMRITI: hybrid (FTS+RRF, default) or vector-only")
     args = parser.parse_args()
-    
+
     print(f"Loading dataset from {args.dataset}...")
     try:
         with open(args.dataset, 'r', encoding='utf-8') as f:
@@ -218,42 +222,46 @@ def main():
     except Exception as e:
         print(f"Error loading {args.dataset}: {e}")
         return
-        
+
     cases = dataset[:args.limit]
     print(f"Loaded {len(cases)} cases. Starting evaluation...")
-    
+
     results = []
-    
-    # Create an outer temporary directory that automatically cleans up entirely
+
     with tempfile.TemporaryDirectory() as temp_dir:
         for idx, case in enumerate(cases):
             print(f"=== Evaluating Case {idx+1}/{len(cases)} ===")
             if args.baseline:
                 res = process_case_baseline(case)
-                results.append(res)
             else:
-                res = process_case_smriti(case, temp_dir)
-                results.append(res)
-                
+                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"))
+            results.append(res)
+
     # Aggregate and print results
     total_acc = sum(r['accuracy'] for r in results) / len(results)
     avg_latency = sum(r['latency'] for r in results) / len(results)
-    
+
+    if args.baseline:
+        method_label = "Baseline (full context)"
+    elif args.mode == "hybrid":
+        method_label = "SMRITI hybrid (FTS+RRF)"
+    else:
+        method_label = "SMRITI vector-only"
+
     print("=" * 40)
     print(f"LONGMEMEVAL EVALUATION COMPLETE")
-    print(f"Method: {'Baseline' if args.baseline else 'SMRITI Dual-Process'}")
+    print(f"Method: {method_label}")
     print(f"Cases Evaluated: {len(results)}")
     print(f"Overall Accuracy: {total_acc * 100:.1f}%")
     print(f"Average Inquiry Latency: {avg_latency:.2f}s")
     print("=" * 40)
-    
-    # Save results
+
     output_file = "results/longmemeval_results.json"
     os.makedirs("results", exist_ok=True)
     with open(output_file, "w") as f:
         json.dump({
             "summary": {
-                "method": "Baseline" if args.baseline else "SMRITI",
+                "method": method_label,
                 "total_cases": len(results),
                 "accuracy": total_acc,
                 "latency": avg_latency
