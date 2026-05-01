@@ -9,9 +9,12 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import deque
+from collections import defaultdict, deque
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from smriti_memcore.fts_index import FTSIndex
 
 import numpy as np
 
@@ -38,11 +41,13 @@ class RetrievalEngine:
         working_memory: WorkingMemory,
         vector_store: VectorStore,
         config: SmritiConfig,
+        fts_index: Optional["FTSIndex"] = None,
     ):
         self.palace = palace
         self.working_memory = working_memory
         self.vector_store = vector_store
         self.config = config
+        self.fts_index = fts_index
 
         # Retrieval log (for salience weight learning, bounded to prevent memory leaks)
         self.retrieval_log: deque = deque(maxlen=1000)
@@ -159,6 +164,20 @@ class RetrievalEngine:
         )
 
         return score
+
+    def _rrf_merge(
+        self,
+        vector_candidates: List[Memory],
+        fts_results: List[Tuple[str, float]],
+        pool_size: int,
+        k: int = 60,
+    ) -> List[str]:
+        scores: Dict[str, float] = defaultdict(float)
+        for rank, memory in enumerate(vector_candidates):
+            scores[memory.id] += 1.0 / (k + rank + 1)
+        for rank, (memory_id, _) in enumerate(fts_results):
+            scores[memory_id] += 1.0 / (k + rank + 1)
+        return sorted(scores, key=lambda mid: scores[mid], reverse=True)[:pool_size]
 
     def _compute_effort(self, memory: Memory, now: datetime) -> float:
         """

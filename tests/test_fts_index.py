@@ -40,3 +40,43 @@ class TestFTSExactTermSearch:
         fts.rebuild(memories)
         results = fts.search("YEP-293", top_k=5)
         assert results == []
+
+
+class TestRRFMerge:
+    def _engine(self, palace, vector_store, working_memory):
+        from smriti_memcore.models import SmritiConfig
+        from smriti_memcore.retrieval import RetrievalEngine
+        return RetrievalEngine(
+            palace=palace, working_memory=working_memory,
+            vector_store=vector_store, config=SmritiConfig(),
+        )
+
+    def test_fts_only_memory_in_merged_pool(
+        self, palace, vector_store, working_memory, make_memory
+    ):
+        engine = self._engine(palace, vector_store, working_memory)
+        fts_only = make_memory("fts-only memory")
+        vector_mem = make_memory("vector memory")
+        palace.place_memory(vector_mem)
+
+        merged = engine._rrf_merge(
+            vector_candidates=[vector_mem],
+            fts_results=[(fts_only.id, -1.0)],
+            pool_size=10,
+        )
+        assert fts_only.id in merged
+
+    def test_both_list_memory_scores_higher(
+        self, palace, vector_store, working_memory, make_memory
+    ):
+        engine = self._engine(palace, vector_store, working_memory)
+        both = make_memory("in both lists")
+        fts_only = make_memory("in fts only")
+        palace.place_memory(both)
+
+        merged = engine._rrf_merge(
+            vector_candidates=[both],
+            fts_results=[(both.id, -1.0), (fts_only.id, -2.0)],
+            pool_size=10,
+        )
+        assert merged.index(both.id) < merged.index(fts_only.id)
