@@ -245,7 +245,7 @@ class SMRITI:
     def consolidate(self, depth=None) -> Dict:
         """
         Run the Consolidation Engine.
-        
+
         If depth is None, the scheduler decides automatically.
         Otherwise, force a specific depth: 'full', 'light', or 'defer'.
         """
@@ -255,6 +255,16 @@ class SMRITI:
             depth = ConsolidationDepth(depth)
 
         result = self.consolidation_engine.consolidate(depth)
+
+        # Resync FTS index — consolidation may archive memories outside forget()
+        try:
+            active = [
+                m for m in self.palace.memories.values()
+                if m.status == MemoryStatus.ACTIVE
+            ]
+            self.fts_index.rebuild(active)
+        except Exception as e:
+            logger.warning(f"FTS rebuild after consolidation failed: {e}")
 
         # Track metrics
         self._metrics.consolidation_count.inc()

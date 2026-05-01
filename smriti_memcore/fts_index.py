@@ -33,13 +33,14 @@ class FTSIndex:
         self._conn = self._open(fts_db_path)
 
     def _open(self, path: str) -> sqlite3.Connection:
+        conn = sqlite3.connect(path)
         try:
-            conn = sqlite3.connect(path)
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute(_CREATE_TABLE)
             conn.commit()
             return conn
         except sqlite3.DatabaseError:
+            conn.close()
             if path != ":memory:":
                 logger.warning(f"Corrupt fts.db at {path} — deleting and rebuilding")
                 try:
