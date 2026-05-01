@@ -16,6 +16,20 @@ from langchain_core.messages import HumanMessage, AIMessage
 from smriti_memcore.core import SMRITI, SmritiConfig
 from smriti_memcore.integrations.langchain_memory import SmritiLangChainHistory
 
+OLLAMA_BASE_URL = "http://localhost:11434/v1"
+
+
+def make_llm(provider: str, model: str):
+    """Return a ChatOpenAI-compatible LLM for the given provider."""
+    if provider == "ollama":
+        return ChatOpenAI(
+            base_url=OLLAMA_BASE_URL,
+            api_key="ollama",
+            model=model,
+            temperature=0.0,
+        )
+    return ChatOpenAI(model=model, temperature=0.0)
+
 # Simple exact/fuzzy match for evaluation
 def compute_accuracy(prediction: str, ground_truth: str) -> float:
     # A robust LLM-as-a-judge is preferred, but for this script we do string inclusion.
@@ -32,19 +46,15 @@ def compute_accuracy(prediction: str, ground_truth: str) -> float:
 from datetime import datetime
 from smriti_memcore.models import Episode, SalienceScore, MemorySource
 
-def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True) -> Dict[str, Any]:
+def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True, llm=None) -> Dict[str, Any]:
     """Runs a single LongMemEval case through a SMRITI-augmented LangChain agent."""
 
     import os
     from datetime import timedelta
 
-    # 1. Initialize SMRITI in a temporary isolation directory so nothing leaks between cases
+    # 1. Initialize SMRITI — SmritiConfig defaults to Ollama/mistral; no API key needed for local runs
     db_path = os.path.join(temp_dir, f"smriti_db_{test_case['question_id']}")
-    config = SmritiConfig(
-        storage_path=db_path,
-        llm_model="gpt-4o-mini",
-        openai_api_key=os.environ.get("OPENAI_API_KEY")
-    )
+    config = SmritiConfig(storage_path=db_path)
     smriti_engine = SMRITI(config=config)
     if not hybrid:
         smriti_engine.retrieval_engine.fts_index = None
@@ -88,8 +98,7 @@ def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool =
     print("  Triggering single batch consolidation...")
     smriti_engine.consolidate(depth="full")
         
-    # 4. Create the Chat Chain to answer the final question
-    llm = ChatOpenAI(temperature=0.0, model="gpt-4o-mini") # deterministic evaluation
+    # 4. Build the QA chain using the injected LLM
     
     # 5. Ask the specific test question
     question = test_case['question']
@@ -141,16 +150,16 @@ def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool =
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 
-def process_case_baseline(test_case: Dict[str, Any]) -> Dict[str, Any]:
+def process_case_baseline(test_case: Dict[str, Any], llm=None) -> Dict[str, Any]:
     """Runs a single LongMemEval case through a standard LangChain agent (Full Context)."""
-    
+
     # 1. Setup Standard LangChain Memory (Infinite Buffer)
     history = ChatMessageHistory()
-    
+
     # 2. Ingest histories directly
     sessions = test_case.get('haystack_sessions', [])
     print(f"[{test_case['question_id']}] Ingesting {len(sessions)} chat sessions into standard LLM context...")
-    
+
     for session in sessions:
         for msg in session:
             role = msg.get('role')
@@ -159,9 +168,8 @@ def process_case_baseline(test_case: Dict[str, Any]) -> Dict[str, Any]:
                 history.add_user_message(content)
             elif role == 'assistant':
                 history.add_ai_message(content)
-                
+
     # 3. Create Chain
-    llm = ChatOpenAI(temperature=0.0, model="gpt-4o-mini")
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a helpful assistant. Use your recalled context to answer the user's question directly and concisely."),
@@ -213,7 +221,15 @@ def main():
     parser.add_argument("--baseline", action="store_true", help="Run with standard ConversationBufferMemory instead of SMRITI")
     parser.add_argument("--mode", choices=["hybrid", "vector"], default="hybrid",
                         help="Retrieval mode for SMRITI: hybrid (FTS+RRF, default) or vector-only")
+    parser.add_argument("--llm", choices=["ollama", "openai"], default="ollama",
+                        help="LLM provider for QA chain (default: ollama)")
+    parser.add_argument("--llm-model", dest="llm_model", default=None,
+                        help="Model name (default: mistral for ollama, gpt-4o-mini for openai)")
     args = parser.parse_args()
+
+    llm_model = args.llm_model or ("mistral" if args.llm == "ollama" else "gpt-4o-mini")
+    llm = make_llm(args.llm, llm_model)
+    print(f"LLM: {args.llm}/{llm_model}")
 
     print(f"Loading dataset from {args.dataset}...")
     try:
@@ -232,21 +248,22 @@ def main():
         for idx, case in enumerate(cases):
             print(f"=== Evaluating Case {idx+1}/{len(cases)} ===")
             if args.baseline:
-                res = process_case_baseline(case)
+                res = process_case_baseline(case, llm=llm)
             else:
-                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"))
+                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"), llm=llm)
             results.append(res)
 
     # Aggregate and print results
     total_acc = sum(r['accuracy'] for r in results) / len(results)
     avg_latency = sum(r['latency'] for r in results) / len(results)
 
+    llm_label = f"{args.llm}/{llm_model}"
     if args.baseline:
-        method_label = "Baseline (full context)"
+        method_label = f"Baseline (full context) [{llm_label}]"
     elif args.mode == "hybrid":
-        method_label = "SMRITI hybrid (FTS+RRF)"
+        method_label = f"SMRITI hybrid (FTS+RRF) [{llm_label}]"
     else:
-        method_label = "SMRITI vector-only"
+        method_label = f"SMRITI vector-only [{llm_label}]"
 
     print("=" * 40)
     print(f"LONGMEMEVAL EVALUATION COMPLETE")
