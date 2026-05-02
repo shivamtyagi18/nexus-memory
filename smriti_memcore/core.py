@@ -84,7 +84,7 @@ class SMRITI:
         self.fts_index = FTSIndex(self.config.storage_path)
         active_memories = [
             m for m in self.palace.memories.values()
-            if m.status == MemoryStatus.ACTIVE
+            if m.status in (MemoryStatus.ACTIVE, MemoryStatus.PINNED)
         ]
         if self.fts_index.needs_rebuild(len(active_memories)):
             self.fts_index.rebuild(active_memories)
@@ -260,7 +260,7 @@ class SMRITI:
         try:
             active = [
                 m for m in self.palace.memories.values()
-                if m.status == MemoryStatus.ACTIVE
+                if m.status in (MemoryStatus.ACTIVE, MemoryStatus.PINNED)
             ]
             self.fts_index.rebuild(active)
         except Exception as e:

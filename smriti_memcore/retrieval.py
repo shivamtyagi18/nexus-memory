@@ -11,12 +11,11 @@ import logging
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from smriti_memcore.fts_index import FTSIndex
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+
+from smriti_memcore.fts_index import FTSIndex
 
 from smriti_memcore.models import Memory, SmritiConfig
 from smriti_memcore.palace import SemanticPalace
@@ -41,7 +40,7 @@ class RetrievalEngine:
         working_memory: WorkingMemory,
         vector_store: VectorStore,
         config: SmritiConfig,
-        fts_index: Optional["FTSIndex"] = None,
+        fts_index: Optional[FTSIndex] = None,
     ):
         self.palace = palace
         self.working_memory = working_memory
@@ -203,7 +202,7 @@ class RetrievalEngine:
             scores[memory.id] += 1.0 / (k + rank + 1)
         for rank, (memory_id, _) in enumerate(fts_results):
             scores[memory_id] += 1.0 / (k + rank + 1)
-        return sorted(scores, key=lambda mid: scores[mid], reverse=True)[:pool_size]
+        return sorted(scores.keys(), key=lambda mid: scores[mid], reverse=True)[:pool_size]
 
     def _compute_effort(self, memory: Memory, now: datetime) -> float:
         """

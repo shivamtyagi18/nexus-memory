@@ -229,7 +229,7 @@ def main():
     parser.add_argument("--llm-model", dest="llm_model", default=None,
                         help="Model name for QA chain (defaults: mistral / gpt-4o-mini / claude-haiku-4-5-20251001)")
     parser.add_argument("--smriti-model", dest="smriti_model", default="mistral",
-                        help="Anthropic model for SMRITI consolidation LLM calls (default: claude-haiku-4-5-20251001)")
+                        help="Ollama/LLM model for SMRITI consolidation calls (default: mistral)")
     parser.add_argument("--output", type=str, default="results/longmemeval_results.json",
                         help="Path to write JSON results (default: results/longmemeval_results.json)")
     args = parser.parse_args()

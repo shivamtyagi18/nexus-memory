@@ -14,6 +14,8 @@ from smriti_memcore.models import Memory
 
 logger = logging.getLogger(__name__)
 
+_FTS5_OPERATORS = frozenset({"AND", "OR", "NOT", "NEAR"})
+
 _CREATE_TABLE = """
 CREATE VIRTUAL TABLE IF NOT EXISTS memories USING fts5(
     memory_id UNINDEXED,
@@ -58,6 +60,7 @@ class FTSIndex:
         return row[0] != active_count
 
     def add(self, memory_id: str, content: str) -> None:
+        self._conn.execute("DELETE FROM memories WHERE memory_id = ?", (memory_id,))
         self._conn.execute(
             "INSERT INTO memories(memory_id, content) VALUES (?, ?)",
             (memory_id, content),
@@ -79,12 +82,17 @@ class FTSIndex:
             )
 
     def search(self, query: str, top_k: int = 20) -> List[Tuple[str, float]]:
+        # Strip punctuation then drop FTS5 boolean operators so they are never
+        # interpreted as query syntax (bm25 returns negative values; ORDER BY rank
+        # is the conventional FTS5 idiom for ascending-relevance sort).
         clean_query = re.sub(r'[^\w\s]', ' ', query).strip()
-        if not clean_query:
+        tokens = [t for t in clean_query.split() if t.upper() not in _FTS5_OPERATORS]
+        if not tokens:
             return []
+        clean_query = ' '.join(tokens)
         rows = self._conn.execute(
-            "SELECT memory_id, bm25(memories) FROM memories "
-            "WHERE memories MATCH ? ORDER BY bm25(memories) LIMIT ?",
+            "SELECT memory_id, rank FROM memories "
+            "WHERE memories MATCH ? ORDER BY rank LIMIT ?",
             (clean_query, top_k),
         ).fetchall()
         return [(row[0], row[1]) for row in rows]
@@ -92,5 +100,5 @@ class FTSIndex:
     def close(self) -> None:
         try:
             self._conn.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("FTSIndex.close() suppressed: %s", exc)
