@@ -8,6 +8,7 @@ from typing import Dict, Any, List
 
 # LCEL and LangChain imports
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
@@ -18,16 +19,18 @@ from smriti_memcore.integrations.langchain_memory import SmritiLangChainHistory
 
 OLLAMA_BASE_URL = "http://localhost:11434/v1"
 
+DEFAULT_MODELS = {
+    "ollama": "mistral",
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-haiku-4-5-20251001",
+}
+
 
 def make_llm(provider: str, model: str):
-    """Return a ChatOpenAI-compatible LLM for the given provider."""
     if provider == "ollama":
-        return ChatOpenAI(
-            base_url=OLLAMA_BASE_URL,
-            api_key="ollama",
-            model=model,
-            temperature=0.0,
-        )
+        return ChatOpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama", model=model, temperature=0.0)
+    if provider == "anthropic":
+        return ChatAnthropic(model=model, temperature=0.0)
     return ChatOpenAI(model=model, temperature=0.0)
 
 # Simple exact/fuzzy match for evaluation
@@ -35,7 +38,7 @@ def compute_accuracy(prediction: str, ground_truth: str) -> float:
     # A robust LLM-as-a-judge is preferred, but for this script we do string inclusion.
     # LongMemEval answers are usually specific entities.
     pred_lower = prediction.lower()
-    gt_lower = ground_truth.lower()
+    gt_lower = str(ground_truth).lower()
     
     # Simple check if the ground truth is somewhere in the prediction
     if gt_lower in pred_lower:
@@ -46,15 +49,15 @@ def compute_accuracy(prediction: str, ground_truth: str) -> float:
 from datetime import datetime
 from smriti_memcore.models import Episode, SalienceScore, MemorySource
 
-def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True, llm=None) -> Dict[str, Any]:
+def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True, llm=None, smriti_model: str = "mistral") -> Dict[str, Any]:
     """Runs a single LongMemEval case through a SMRITI-augmented LangChain agent."""
 
     import os
     from datetime import timedelta
 
-    # 1. Initialize SMRITI — SmritiConfig defaults to Ollama/mistral; no API key needed for local runs
+    # 1. Initialize SMRITI — use the same Anthropic model for consolidation LLM calls
     db_path = os.path.join(temp_dir, f"smriti_db_{test_case['question_id']}")
-    config = SmritiConfig(storage_path=db_path)
+    config = SmritiConfig(storage_path=db_path, llm_model=smriti_model)
     smriti_engine = SMRITI(config=config)
     if not hybrid:
         smriti_engine.retrieval_engine.fts_index = None
@@ -221,13 +224,17 @@ def main():
     parser.add_argument("--baseline", action="store_true", help="Run with standard ConversationBufferMemory instead of SMRITI")
     parser.add_argument("--mode", choices=["hybrid", "vector"], default="hybrid",
                         help="Retrieval mode for SMRITI: hybrid (FTS+RRF, default) or vector-only")
-    parser.add_argument("--llm", choices=["ollama", "openai"], default="ollama",
+    parser.add_argument("--llm", choices=["ollama", "openai", "anthropic"], default="ollama",
                         help="LLM provider for QA chain (default: ollama)")
     parser.add_argument("--llm-model", dest="llm_model", default=None,
-                        help="Model name (default: mistral for ollama, gpt-4o-mini for openai)")
+                        help="Model name for QA chain (defaults: mistral / gpt-4o-mini / claude-haiku-4-5-20251001)")
+    parser.add_argument("--smriti-model", dest="smriti_model", default="mistral",
+                        help="Anthropic model for SMRITI consolidation LLM calls (default: claude-haiku-4-5-20251001)")
+    parser.add_argument("--output", type=str, default="results/longmemeval_results.json",
+                        help="Path to write JSON results (default: results/longmemeval_results.json)")
     args = parser.parse_args()
 
-    llm_model = args.llm_model or ("mistral" if args.llm == "ollama" else "gpt-4o-mini")
+    llm_model = args.llm_model or DEFAULT_MODELS[args.llm]
     llm = make_llm(args.llm, llm_model)
     print(f"LLM: {args.llm}/{llm_model}")
 
@@ -250,7 +257,7 @@ def main():
             if args.baseline:
                 res = process_case_baseline(case, llm=llm)
             else:
-                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"), llm=llm)
+                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"), llm=llm, smriti_model=args.smriti_model)
             results.append(res)
 
     # Aggregate and print results
@@ -273,8 +280,8 @@ def main():
     print(f"Average Inquiry Latency: {avg_latency:.2f}s")
     print("=" * 40)
 
-    output_file = "results/longmemeval_results.json"
-    os.makedirs("results", exist_ok=True)
+    output_file = args.output
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else ".", exist_ok=True)
     with open(output_file, "w") as f:
         json.dump({
             "summary": {

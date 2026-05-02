@@ -106,3 +106,68 @@ class TestHybridSearchEndToEnd:
         assert any("YEP-293" in m.content for m in results), \
             "Hybrid search must find YEP-293 in top-5"
         smriti.close()
+
+
+class TestFTSEdgeCases:
+    def test_special_chars_only_query_returns_empty(self, fts, make_memory):
+        memories = [make_memory(f"topic {i}") for i in range(5)]
+        fts.rebuild(memories)
+        results = fts.search("---", top_k=5)
+        assert results == []
+
+    def test_close_is_idempotent(self, fts):
+        fts.close()
+        fts.close()  # second close must not raise
+
+    def test_needs_rebuild_true_when_stale(self, fts, make_memory):
+        memories = [make_memory(f"topic {i}") for i in range(3)]
+        fts.rebuild(memories)
+        assert fts.needs_rebuild(5) is True
+        assert fts.needs_rebuild(3) is False
+
+
+class TestHybridFallback:
+    def test_vector_only_fallback(self, tmp_dir):
+        from smriti_memcore.core import SMRITI
+        from smriti_memcore.models import MemorySource, SmritiConfig
+
+        config = SmritiConfig(storage_path=tmp_dir)
+        smriti = SMRITI(config=config)
+        smriti.encode("the user prefers dark mode", source=MemorySource.USER_STATED, use_llm=False)
+        smriti.retrieval_engine.fts_index = None  # disable FTS → vector-only fallback
+        results = smriti.recall("dark mode preference", top_k=5)
+        assert len(results) >= 1
+        smriti.close()
+
+    def test_hybrid_no_regression_on_semantic_query(self, tmp_dir):
+        from smriti_memcore.core import SMRITI
+        from smriti_memcore.models import MemorySource, SmritiConfig
+        import tempfile, os
+
+        # vector-only baseline
+        cfg_v = SmritiConfig(storage_path=os.path.join(tmp_dir, "v"))
+        sv = SMRITI(config=cfg_v)
+        for content in [
+            "the user enjoys hiking in the mountains",
+            "the user dislikes crowded places",
+            "the user's favourite season is autumn",
+        ]:
+            sv.encode(content, source=MemorySource.USER_STATED, use_llm=False)
+        sv.retrieval_engine.fts_index = None
+        vector_results = sv.recall("outdoor activities", top_k=5)
+        sv.close()
+
+        # hybrid
+        cfg_h = SmritiConfig(storage_path=os.path.join(tmp_dir, "h"))
+        sh = SMRITI(config=cfg_h)
+        for content in [
+            "the user enjoys hiking in the mountains",
+            "the user dislikes crowded places",
+            "the user's favourite season is autumn",
+        ]:
+            sh.encode(content, source=MemorySource.USER_STATED, use_llm=False)
+        hybrid_results = sh.recall("outdoor activities", top_k=5)
+        sh.close()
+
+        assert len(hybrid_results) >= len(vector_results), \
+            "Hybrid must return at least as many results as vector-only"
