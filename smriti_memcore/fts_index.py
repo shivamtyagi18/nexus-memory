@@ -16,6 +16,19 @@ logger = logging.getLogger(__name__)
 
 _FTS5_OPERATORS = frozenset({"AND", "OR", "NOT", "NEAR"})
 
+# Common English function words that appear in natural-language questions but
+# not in declarative memory summaries. Including them in an FTS5 AND-query
+# causes most queries to return zero results.
+_STOP_WORDS = frozenset({
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "will", "would", "could",
+    "should", "may", "might", "shall", "can",
+    "at", "in", "on", "to", "for", "of", "with", "by", "from",
+    "i", "me", "my", "we", "our", "you", "your", "he", "she", "they",
+    "what", "which", "who", "when", "where", "why", "how",
+    "this", "that", "these", "those", "it", "its",
+})
+
 _CREATE_TABLE = """
 CREATE VIRTUAL TABLE IF NOT EXISTS memories USING fts5(
     memory_id UNINDEXED,
@@ -86,7 +99,10 @@ class FTSIndex:
         # interpreted as query syntax (bm25 returns negative values; ORDER BY rank
         # is the conventional FTS5 idiom for ascending-relevance sort).
         clean_query = re.sub(r'[^\w\s]', ' ', query).strip()
-        tokens = [t for t in clean_query.split() if t not in _FTS5_OPERATORS]
+        tokens = [
+            t for t in clean_query.split()
+            if t not in _FTS5_OPERATORS and t.lower() not in _STOP_WORDS
+        ]
         if not tokens:
             return []
         clean_query = ' '.join(tokens)
