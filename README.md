@@ -54,7 +54,7 @@ The fastest way to use SMRITI is as a persistent memory layer for [Claude Code](
 **Run the install script:**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/shivamtyagi18/smriti-memcore/main/install_smriti_mcp.sh)
+bash <(curl -s https://raw.githubusercontent.com/smriti-memcore/smriti-memcore/main/install_smriti_mcp.sh)
 ```
 
 The script will:
@@ -66,7 +66,7 @@ The script will:
 
 **Then restart Claude Code.** Verify with `/mcp` — `smriti` should appear as connected.
 
-**Available tools (12):**
+**Available tools (18: 12 native + 6 AMP v1.0 aliases):**
 
 | Tool | Description |
 |---|---|
@@ -82,6 +82,19 @@ The script will:
 | `smriti_get_suggestions` | Proactive insights from background consolidation |
 | `smriti_open_ui` | Launch the visual Memory Browser in the default web browser |
 | `smriti_sync_obsidian` | Export the Semantic Palace to an Obsidian vault |
+
+**AMP v1.0 aliases** (interoperable with any AMP-conformant agent framework):
+
+| AMP Tool | Maps to |
+|---|---|
+| `amp.encode` | `smriti_encode` — with `agent_id` + `force` params, AMP response schema |
+| `amp.recall` | `smriti_recall` — returns `{results: [{id, content, score, timestamp, status}]}` |
+| `amp.forget` | `smriti_forget` — returns `{status: "forgotten" \| "not_found"}` |
+| `amp.stats` | `smriti_stats` — returns `{memory_count, ...}` |
+| `amp.pin` | `smriti_pin` — returns `{status: "pinned" \| "not_found"}` |
+| `amp.consolidate` | `smriti_consolidate` — returns `{status: "ok", memories_processed: int}` |
+
+> smriti-memcore is single-tenant — `agent_id` is accepted on all AMP verbs but ignored. Isolation is at the storage-path level.
 
 **LLM options** — set during install or via environment variables:
 
@@ -109,7 +122,7 @@ pip install smriti-memcore[faiss]
 Or install from source:
 
 ```bash
-git clone https://github.com/shivamtyagi18/smriti-memcore.git
+git clone https://github.com/smriti-memcore/smriti-memcore.git
 cd smriti-memcore
 pip install -e .
 ```
@@ -335,6 +348,11 @@ config = SmritiConfig(
 
 ---
 
+## What's New in v1.2.0
+
+- **AMP v1.0 Full conformance** — MCP server now exposes all 6 AMP verbs (`amp.encode`, `amp.recall`, `amp.forget`, `amp.stats`, `amp.pin`, `amp.consolidate`) alongside the existing `smriti_*` tools. Passes all 25 AMP compliance tests (Core + Full).
+- **Zero breaking changes** — all existing `smriti_*` tool calls continue to work unchanged. AMP tools are additive aliases.
+
 ## What's New in v1.0.0
 
 - **Consolidation robustness overhaul** — fixed a critical bug where singleton episodes leaked in the buffer indefinitely, causing consolidation to report "no significant memories" even when important facts were present
@@ -435,7 +453,7 @@ smriti-memcore/
 │   ├── metrics.py         # Observability: counters, gauges, histograms, Prometheus export
 │   └── integrations/      # Framework adapters
 │       ├── langchain_memory.py  # LangChain BaseMemory component
-│       └── mcp_server.py        # Claude Code MCP server (12 tools)
+│       └── mcp_server.py        # Claude Code MCP server (18 tools: 12 smriti_* + 6 AMP aliases)
 ├── install_smriti_mcp.sh   # One-command Claude Code setup
 ├── tests/                 # 190 tests across 14 files
 ├── baselines/             # Baseline implementations for comparison

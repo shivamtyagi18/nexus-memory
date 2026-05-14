@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-05-13
+
+### Added
+- **AMP v1.0 Full conformance** — MCP server now exposes 6 AMP alias tools (`amp.encode`, `amp.recall`, `amp.forget`, `amp.stats`, `amp.pin`, `amp.consolidate`) alongside the existing 12 `smriti_*` tools. All AMP verbs accept `agent_id` (accepted, ignored — single-tenant). Passes all 25 AMP compliance tests (Core + Full conformance levels).
+- `amp.encode`: `force=True` bypasses the salience gate; returns `{status, id}` schema
+- `amp.recall`: returns `{results: [{id, content, score, timestamp, status}]}` wrapper
+- `amp.forget`: returns `{status: "forgotten" | "not_found"}` instead of error-on-not-found
+- `amp.pin`: returns `{status: "pinned" | "not_found"}` instead of error-on-not-found
+- `amp.consolidate`: returns `{status: "ok", memories_processed: int}`
+- `amp.stats`: returns `{memory_count: int, ...}` with count at top level
+
+### Changed
+- FastMCP server description updated to reflect 18 total tools and AMP conformance level
+
 ## [1.0.1] - 2026-04-05
 
 ### Fixed
