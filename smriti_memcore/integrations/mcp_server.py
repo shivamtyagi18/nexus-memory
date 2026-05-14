@@ -77,7 +77,15 @@ def build_smriti_config() -> SmritiConfig:
 # Tests replace this: `import smriti_memcore.integrations.mcp_server as s; s._smriti = test_instance`
 _smriti: Optional[SMRITI] = None
 
-mcp_server = FastMCP("smriti-memory")
+mcp_server = FastMCP(
+    "smriti-memory",
+    instructions=(
+        "SMRITI memory system — AMP Full-conformant (amp_version: 1.0). "
+        "Exposes 12 native smriti_* tools and 6 AMP alias tools (amp.encode … amp.stats). "
+        "Single-tenant: agent_id is accepted on AMP verbs but ignored; "
+        "isolation is at the storage-path level."
+    ),
+)
 
 
 # ── Serialization ─────────────────────────────────────────────────────────────
@@ -422,6 +430,166 @@ def smriti_sync_obsidian(vault_path: str = "") -> Dict[str, Any]:
         return {"error": str(e)}
 
 
+# ── AMP Conformance Aliases ───────────────────────────────────────────────────
+# Six AMP verbs (amp.encode … amp.stats) exposed alongside the native smriti_*
+# tools for full AMP v1.0 compliance. agent_id is accepted but ignored —
+# smriti-memcore is single-tenant; isolation is handled at the storage-path level.
+
+@mcp_server.tool(name="amp.encode")
+def amp_encode(
+    agent_id: str,
+    content: str,
+    force: bool = False,
+    source: str = "direct",
+) -> Dict[str, Any]:
+    """
+    Store a new memory for an agent. (AMP Core verb)
+
+    force=True bypasses the salience gate and always stores.
+    Returns {status: "stored", id: "..."} or {status: "below_threshold"}.
+    """
+    if not content or not content.strip():
+        return {"error": "content must not be empty", "amp_error_code": "invalid_request"}
+
+    mem_source = MemorySource.USER_STATED if force else MemorySource(source) if source in {m.value for m in MemorySource} else None
+    if mem_source is None:
+        return {"error": f"Invalid source '{source}'", "amp_error_code": "invalid_request"}
+
+    try:
+        memory_id = _smriti.encode(content, source=mem_source, use_llm=not force)
+        if memory_id is None:
+            return {"status": "below_threshold"}
+        _smriti.save()
+        return {"status": "stored", "id": memory_id}
+    except Exception as e:
+        logger.error(f"amp.encode failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
+@mcp_server.tool(name="amp.recall")
+def amp_recall(
+    agent_id: str,
+    query: str,
+    top_k: int = 10,
+) -> Dict[str, Any]:
+    """
+    Retrieve memories relevant to a query. (AMP Core verb)
+
+    Returns {results: [{id, content, score, timestamp, status}, ...]}.
+    Archived memories are excluded by default.
+    """
+    try:
+        memories = _smriti.recall(query, top_k=top_k)
+        results = [
+            {
+                "id": m.id,
+                "content": m.content,
+                "score": m.retrieval_score,
+                "timestamp": m.creation_time.isoformat(),
+                "status": m.status.value,
+            }
+            for m in memories
+            if m.status.value != "archived"
+        ]
+        return {"results": results}
+    except Exception as e:
+        logger.error(f"amp.recall failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
+@mcp_server.tool(name="amp.forget")
+def amp_forget(
+    agent_id: str,
+    id: str,
+) -> Dict[str, Any]:
+    """
+    Permanently forget a memory. (AMP Core verb)
+
+    Returns {status: "forgotten"} or {status: "not_found"}.
+    """
+    try:
+        mem = _smriti.palace.get_memory(id)
+        if mem is None:
+            return {"status": "not_found"}
+        _smriti.forget(id)
+        _smriti.save()
+        return {"status": "forgotten"}
+    except Exception as e:
+        logger.error(f"amp.forget failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
+@mcp_server.tool(name="amp.stats")
+def amp_stats(agent_id: str) -> Dict[str, Any]:
+    """
+    Return backend statistics. (AMP Core verb)
+
+    Always includes memory_count (int). May include episode_buffer and retrieval stats.
+    """
+    try:
+        s = _smriti.stats()
+        return {
+            "memory_count": s["palace"].get("memory_count", 0),
+            "episode_buffer": s["episode_buffer"].get("total_episodes", 0),
+            "retrieval": s.get("retrieval", {}),
+        }
+    except Exception as e:
+        logger.error(f"amp.stats failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
+@mcp_server.tool(name="amp.pin")
+def amp_pin(
+    agent_id: str,
+    id: str,
+) -> Dict[str, Any]:
+    """
+    Mark a memory as permanent — it will never be decayed or archived. (AMP Full verb)
+
+    Returns {status: "pinned"} or {status: "not_found"}.
+    """
+    try:
+        mem = _smriti.palace.get_memory(id)
+        if mem is None:
+            return {"status": "not_found"}
+        _smriti.pin(id)
+        _smriti.save()
+        return {"status": "pinned"}
+    except Exception as e:
+        logger.error(f"amp.pin failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
+@mcp_server.tool(name="amp.consolidate")
+def amp_consolidate(
+    agent_id: str,
+    depth: str = "light",
+) -> Dict[str, Any]:
+    """
+    Trigger backend consolidation. (AMP Full verb)
+
+    depth: "light" (fast) or "full" (thorough).
+    Returns {status: "ok", memories_processed: int}.
+    """
+    if depth not in ("light", "full"):
+        return {"error": "depth must be 'light' or 'full'", "amp_error_code": "invalid_request"}
+    try:
+        result = _smriti.consolidate(depth=depth)
+
+        if result.get("status") == "deferred":
+            return {"status": "ok", "memories_processed": 0}
+
+        processes = result.get("processes", {})
+        memories_processed = sum(
+            1 for p in processes.values()
+            if isinstance(p, dict) and "error" not in p
+        )
+        return {"status": "ok", "memories_processed": memories_processed}
+    except Exception as e:
+        logger.error(f"amp.consolidate failed: {e}")
+        return {"error": str(e), "amp_error_code": "backend_error"}
+
+
 # ── Startup ───────────────────────────────────────────────────────────────────
 
 def _startup():
@@ -431,7 +599,7 @@ def _startup():
     logger.info(f"Starting SMRITI MCP server (storage: {config.storage_path}, model: {config.llm_model})")
     _smriti = SMRITI(config=config)
     atexit.register(_smriti.save)
-    logger.info("SMRITI MCP server ready — 12 tools registered")
+    logger.info("SMRITI MCP server ready — 12 smriti_* tools + 6 AMP aliases registered")
 
 
 if __name__ == "__main__":
