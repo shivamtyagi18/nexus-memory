@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import deque
+from collections import defaultdict, deque
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+
+from smriti_memcore.fts_index import FTSIndex
 
 from smriti_memcore.models import Memory, SmritiConfig
 from smriti_memcore.palace import SemanticPalace
@@ -38,11 +40,13 @@ class RetrievalEngine:
         working_memory: WorkingMemory,
         vector_store: VectorStore,
         config: SmritiConfig,
+        fts_index: Optional[FTSIndex] = None,
     ):
         self.palace = palace
         self.working_memory = working_memory
         self.vector_store = vector_store
         self.config = config
+        self.fts_index = fts_index
 
         # Retrieval log (for salience weight learning, bounded to prevent memory leaks)
         self.retrieval_log: deque = deque(maxlen=1000)
@@ -65,8 +69,34 @@ class RetrievalEngine:
         top_k = top_k or self.config.retrieval_top_k
         start_time = time.time()
 
-        # 1. Navigate palace — multi-hop associative search
-        candidates = self.palace.search(query, top_k=top_k * 2, max_hops=max_hops)
+        # Step 1a — vector search (wider pool: top_k*3)
+        vector_candidates = self.palace.search(query, top_k=top_k * 3, max_hops=max_hops)
+
+        if self.fts_index is not None:
+            # Step 1b — FTS keyword search
+            try:
+                fts_results = self.fts_index.search(query, top_k=top_k * 3)
+            except Exception:
+                logger.warning("FTS search failed — falling back to vector-only retrieval")
+                fts_results = []
+
+            # Step 1c — RRF merge → ordered list of IDs
+            merged_ids = self._rrf_merge(
+                vector_candidates, fts_results, pool_size=top_k * 2
+            )
+
+            # Step 1d — reconstruct Memory objects; fetch FTS-only IDs from palace
+            id_map: Dict[str, Memory] = {m.id: m for m in vector_candidates}
+            candidates: List[Memory] = []
+            for mid in merged_ids:
+                if mid in id_map:
+                    candidates.append(id_map[mid])
+                else:
+                    mem = self.palace.get_memory(mid)
+                    if mem is not None:
+                        candidates.append(mem)
+        else:
+            candidates = vector_candidates[: top_k * 2]
 
         if not candidates:
             logger.debug(f"No memories found for query: {query[:60]}...")
@@ -159,6 +189,20 @@ class RetrievalEngine:
         )
 
         return score
+
+    def _rrf_merge(
+        self,
+        vector_candidates: List[Memory],
+        fts_results: List[Tuple[str, float]],
+        pool_size: int,
+        k: int = 60,
+    ) -> List[str]:
+        scores: Dict[str, float] = defaultdict(float)
+        for rank, memory in enumerate(vector_candidates):
+            scores[memory.id] += 1.0 / (k + rank + 1)
+        for rank, (memory_id, _) in enumerate(fts_results):
+            scores[memory_id] += 1.0 / (k + rank + 1)
+        return sorted(scores.keys(), key=lambda mid: scores[mid], reverse=True)[:pool_size]
 
     def _compute_effort(self, memory: Memory, now: datetime) -> float:
         """

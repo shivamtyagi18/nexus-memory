@@ -8,6 +8,7 @@ from typing import Dict, Any, List
 
 # LCEL and LangChain imports
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
@@ -16,12 +17,28 @@ from langchain_core.messages import HumanMessage, AIMessage
 from smriti_memcore.core import SMRITI, SmritiConfig
 from smriti_memcore.integrations.langchain_memory import SmritiLangChainHistory
 
+OLLAMA_BASE_URL = "http://localhost:11434/v1"
+
+DEFAULT_MODELS = {
+    "ollama": "mistral",
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-haiku-4-5-20251001",
+}
+
+
+def make_llm(provider: str, model: str):
+    if provider == "ollama":
+        return ChatOpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama", model=model, temperature=0.0)
+    if provider == "anthropic":
+        return ChatAnthropic(model=model, temperature=0.0)
+    return ChatOpenAI(model=model, temperature=0.0)
+
 # Simple exact/fuzzy match for evaluation
 def compute_accuracy(prediction: str, ground_truth: str) -> float:
     # A robust LLM-as-a-judge is preferred, but for this script we do string inclusion.
     # LongMemEval answers are usually specific entities.
     pred_lower = prediction.lower()
-    gt_lower = ground_truth.lower()
+    gt_lower = str(ground_truth).lower()
     
     # Simple check if the ground truth is somewhere in the prediction
     if gt_lower in pred_lower:
@@ -32,20 +49,18 @@ def compute_accuracy(prediction: str, ground_truth: str) -> float:
 from datetime import datetime
 from smriti_memcore.models import Episode, SalienceScore, MemorySource
 
-def process_case_smriti(test_case: Dict[str, Any], temp_dir: str) -> Dict[str, Any]:
+def process_case_smriti(test_case: Dict[str, Any], temp_dir: str, hybrid: bool = True, llm=None, smriti_model: str = "mistral") -> Dict[str, Any]:
     """Runs a single LongMemEval case through a SMRITI-augmented LangChain agent."""
-    
+
     import os
     from datetime import timedelta
-    
-    # 1. Initialize SMRITI in a temporary isolation directory so nothing leaks between cases
+
+    # 1. Initialize SMRITI — use the same Anthropic model for consolidation LLM calls
     db_path = os.path.join(temp_dir, f"smriti_db_{test_case['question_id']}")
-    config = SmritiConfig(
-        storage_path=db_path,
-        llm_model="gpt-4o-mini",
-        openai_api_key=os.environ.get("OPENAI_API_KEY")
-    )
+    config = SmritiConfig(storage_path=db_path, llm_model=smriti_model)
     smriti_engine = SMRITI(config=config)
+    if not hybrid:
+        smriti_engine.retrieval_engine.fts_index = None
     
     # 2. Setup LangChain Environment
     smriti_history = SmritiLangChainHistory(smriti_client=smriti_engine, session_id="eval_session", top_k=5)
@@ -86,8 +101,7 @@ def process_case_smriti(test_case: Dict[str, Any], temp_dir: str) -> Dict[str, A
     print("  Triggering single batch consolidation...")
     smriti_engine.consolidate(depth="full")
         
-    # 4. Create the Chat Chain to answer the final question
-    llm = ChatOpenAI(temperature=0.0, model="gpt-4o-mini") # deterministic evaluation
+    # 4. Build the QA chain using the injected LLM
     
     # 5. Ask the specific test question
     question = test_case['question']
@@ -139,16 +153,16 @@ def process_case_smriti(test_case: Dict[str, Any], temp_dir: str) -> Dict[str, A
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 
-def process_case_baseline(test_case: Dict[str, Any]) -> Dict[str, Any]:
+def process_case_baseline(test_case: Dict[str, Any], llm=None) -> Dict[str, Any]:
     """Runs a single LongMemEval case through a standard LangChain agent (Full Context)."""
-    
+
     # 1. Setup Standard LangChain Memory (Infinite Buffer)
     history = ChatMessageHistory()
-    
+
     # 2. Ingest histories directly
     sessions = test_case.get('haystack_sessions', [])
     print(f"[{test_case['question_id']}] Ingesting {len(sessions)} chat sessions into standard LLM context...")
-    
+
     for session in sessions:
         for msg in session:
             role = msg.get('role')
@@ -157,9 +171,8 @@ def process_case_baseline(test_case: Dict[str, Any]) -> Dict[str, Any]:
                 history.add_user_message(content)
             elif role == 'assistant':
                 history.add_ai_message(content)
-                
+
     # 3. Create Chain
-    llm = ChatOpenAI(temperature=0.0, model="gpt-4o-mini")
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a helpful assistant. Use your recalled context to answer the user's question directly and concisely."),
@@ -209,8 +222,22 @@ def main():
     parser.add_argument("--dataset", type=str, default="data/longmemeval/longmemeval_s_cleaned.json", help="Path to json dataset")
     parser.add_argument("--limit", type=int, default=5, help="Number of cases to evaluate (full set is 500)")
     parser.add_argument("--baseline", action="store_true", help="Run with standard ConversationBufferMemory instead of SMRITI")
+    parser.add_argument("--mode", choices=["hybrid", "vector"], default="hybrid",
+                        help="Retrieval mode for SMRITI: hybrid (FTS+RRF, default) or vector-only")
+    parser.add_argument("--llm", choices=["ollama", "openai", "anthropic"], default="ollama",
+                        help="LLM provider for QA chain (default: ollama)")
+    parser.add_argument("--llm-model", dest="llm_model", default=None,
+                        help="Model name for QA chain (defaults: mistral / gpt-4o-mini / claude-haiku-4-5-20251001)")
+    parser.add_argument("--smriti-model", dest="smriti_model", default="mistral",
+                        help="Ollama/LLM model for SMRITI consolidation calls (default: mistral)")
+    parser.add_argument("--output", type=str, default="results/longmemeval_results.json",
+                        help="Path to write JSON results (default: results/longmemeval_results.json)")
     args = parser.parse_args()
-    
+
+    llm_model = args.llm_model or DEFAULT_MODELS[args.llm]
+    llm = make_llm(args.llm, llm_model)
+    print(f"LLM: {args.llm}/{llm_model}")
+
     print(f"Loading dataset from {args.dataset}...")
     try:
         with open(args.dataset, 'r', encoding='utf-8') as f:
@@ -218,42 +245,47 @@ def main():
     except Exception as e:
         print(f"Error loading {args.dataset}: {e}")
         return
-        
+
     cases = dataset[:args.limit]
     print(f"Loaded {len(cases)} cases. Starting evaluation...")
-    
+
     results = []
-    
-    # Create an outer temporary directory that automatically cleans up entirely
+
     with tempfile.TemporaryDirectory() as temp_dir:
         for idx, case in enumerate(cases):
             print(f"=== Evaluating Case {idx+1}/{len(cases)} ===")
             if args.baseline:
-                res = process_case_baseline(case)
-                results.append(res)
+                res = process_case_baseline(case, llm=llm)
             else:
-                res = process_case_smriti(case, temp_dir)
-                results.append(res)
-                
+                res = process_case_smriti(case, temp_dir, hybrid=(args.mode == "hybrid"), llm=llm, smriti_model=args.smriti_model)
+            results.append(res)
+
     # Aggregate and print results
     total_acc = sum(r['accuracy'] for r in results) / len(results)
     avg_latency = sum(r['latency'] for r in results) / len(results)
-    
+
+    llm_label = f"{args.llm}/{llm_model}"
+    if args.baseline:
+        method_label = f"Baseline (full context) [{llm_label}]"
+    elif args.mode == "hybrid":
+        method_label = f"SMRITI hybrid (FTS+RRF) [{llm_label}]"
+    else:
+        method_label = f"SMRITI vector-only [{llm_label}]"
+
     print("=" * 40)
     print(f"LONGMEMEVAL EVALUATION COMPLETE")
-    print(f"Method: {'Baseline' if args.baseline else 'SMRITI Dual-Process'}")
+    print(f"Method: {method_label}")
     print(f"Cases Evaluated: {len(results)}")
     print(f"Overall Accuracy: {total_acc * 100:.1f}%")
     print(f"Average Inquiry Latency: {avg_latency:.2f}s")
     print("=" * 40)
-    
-    # Save results
-    output_file = "results/longmemeval_results.json"
-    os.makedirs("results", exist_ok=True)
+
+    output_file = args.output
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else ".", exist_ok=True)
     with open(output_file, "w") as f:
         json.dump({
             "summary": {
-                "method": "Baseline" if args.baseline else "SMRITI",
+                "method": method_label,
                 "total_cases": len(results),
                 "accuracy": total_acc,
                 "latency": avg_latency
