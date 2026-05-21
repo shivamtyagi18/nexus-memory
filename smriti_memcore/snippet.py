@@ -146,11 +146,22 @@ class SnippetExtractor:
         )
         try:
             response = self.llm.generate(prompt)
-            text = getattr(response, "text", str(response)).strip()
         except Exception as e:
             logger.warning(f"SnippetExtractor LLM call failed: {e}; falling back to auto")
             self._extract_auto(memory, query_variants, raw_query_embedding)
             return ExtractResult(used_mode="auto", fallback=True)
+
+        # LLMInterface.generate() does NOT raise on retry exhaustion — it returns
+        # LLMResponse(text=..., error="..."). Check the error field explicitly
+        # so we fall back on real LLM failures, not just on exceptions.
+        if getattr(response, "error", None):
+            logger.warning(
+                f"SnippetExtractor LLM returned error: {response.error}; falling back to auto"
+            )
+            self._extract_auto(memory, query_variants, raw_query_embedding)
+            return ExtractResult(used_mode="auto", fallback=True)
+
+        text = getattr(response, "text", str(response)).strip()
 
         if not text:
             logger.warning("SnippetExtractor LLM returned empty; falling back to auto")

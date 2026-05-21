@@ -197,16 +197,18 @@ class TestLLMMode:
                 self.calls = 0
                 self.fail = False
                 self.return_text = "LLM-extracted relevant sentence."
+                self.return_error = None  # set to a string to simulate retry-exhaust
 
             def generate(self, prompt, **kwargs):
                 self.calls += 1
                 if self.fail:
                     raise RuntimeError("LLM down")
-                # Mimic LLMInterface.generate which returns a string-like object
+                # Mimic LLMInterface.generate which returns LLMResponse with .text and .error
                 class R:
                     pass
                 r = R()
                 r.text = self.return_text
+                r.error = self.return_error
                 return r
 
         return FakeLLM()
@@ -250,4 +252,19 @@ class TestLLMMode:
         result = extractor.extract(m, ["FAISS"], np.zeros(384), mode="llm")
         assert result.fallback is True
         assert result.used_mode == "auto"
+        assert m.snippet is not None
+
+    def test_llm_error_field_falls_back_to_auto(self, vector_store, make_memory, fake_llm):
+        """LLMInterface.generate() returns LLMResponse(error='...') on retry exhaust —
+        not an exception. Must be detected and trigger fallback."""
+        from smriti_memcore.snippet import SnippetExtractor
+        fake_llm.return_error = "Connection refused after 3 retries"
+        fake_llm.return_text = ""  # typical empty-text + error combination
+        content = ("FAISS underlies the vector search. " * 20)
+        m = make_memory(content)
+        extractor = SnippetExtractor(vector_store=vector_store, llm=fake_llm)
+        result = extractor.extract(m, ["FAISS"], np.zeros(384), mode="llm")
+        assert result.fallback is True
+        assert result.used_mode == "auto"
+        # auto path produces a snippet since "FAISS" overlaps with the content
         assert m.snippet is not None
