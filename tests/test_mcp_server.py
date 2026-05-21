@@ -352,3 +352,63 @@ def test_get_suggestions_serializable():
     from smriti_memcore.integrations.mcp_server import smriti_get_suggestions
     result = smriti_get_suggestions()
     assert _is_json_serializable(result)
+
+
+# ── Task 12: MCP smriti_recall schema + serialize_memory ─────────────────────
+
+class TestSmartRecallMcpSchema:
+    """rewrite/snippet exposed on the smriti_recall tool with enum constraints (Literal type)."""
+
+    def test_smriti_recall_signature_has_rewrite_and_snippet(self):
+        """The function exposed by the tool must accept rewrite and snippet kwargs."""
+        import inspect
+        import smriti_memcore.integrations.mcp_server as mcp_module
+        sig = inspect.signature(mcp_module.smriti_recall)
+        params = sig.parameters
+        assert "rewrite" in params, "smriti_recall must accept a rewrite parameter"
+        assert "snippet" in params, "smriti_recall must accept a snippet parameter"
+        # Optional with None sentinel — caller can omit to use config default
+        assert params["rewrite"].default is None
+        assert params["snippet"].default is None
+
+    def test_smriti_recall_uses_literal_type_for_enum_constraint(self):
+        """Spec §8.2 — FastMCP introspects Literal type hints into the JSON schema's enum,
+        so MCP callers see the three valid values."""
+        from typing import get_args, get_type_hints
+        import smriti_memcore.integrations.mcp_server as mcp_module
+        hints = get_type_hints(mcp_module.smriti_recall)
+        for field in ("rewrite", "snippet"):
+            t = hints.get(field)
+            # Optional[Literal[...]] is Union[Literal[...], None]
+            inner = [a for a in get_args(t) if a is not type(None)]
+            literal_vals = get_args(inner[0]) if inner else ()
+            assert set(literal_vals) == {"auto", "llm", "none"}, (
+                f"{field} type hint must be Optional[Literal['auto','llm','none']], "
+                f"got Literal{list(literal_vals)}"
+            )
+
+
+class TestSmartRecallMcpResponse:
+    """serialize_memory must include snippet/expandable/metadata fields."""
+
+    def test_serialize_memory_includes_expandable_and_metadata(self):
+        from smriti_memcore.integrations.mcp_server import serialize_memory
+        from smriti_memcore.models import Memory
+        m = Memory(content="full content")
+        m.snippet = "trimmed snippet"
+        d = serialize_memory(m)
+        # When snippet is set, content field becomes the snippet (per spec §8.2)
+        assert d["content"] == "trimmed snippet"
+        assert d["expandable"] is True
+        assert "metadata" in d
+        assert "rewrite_fallback" in d["metadata"]
+        assert "snippet_fallback" in d["metadata"]
+
+    def test_serialize_memory_full_content_when_no_snippet(self):
+        from smriti_memcore.integrations.mcp_server import serialize_memory
+        from smriti_memcore.models import Memory
+        m = Memory(content="full content")
+        # m.snippet is None
+        d = serialize_memory(m)
+        assert d["content"] == "full content"
+        assert d["expandable"] is False
