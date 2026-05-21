@@ -68,6 +68,58 @@ class SnippetExtractor:
             raise NotImplementedError("llm mode added in Task 7")
         raise ValueError(f"Unknown mode {mode!r}")
 
+    _SENTENCE_SPLIT = re.compile(r'(?<=[.!?])\s+')
+
+    def _tokenize(self, text: str) -> List[str]:
+        """Lower-case, strip punctuation, drop stop words."""
+        out = []
+        for t in text.lower().split():
+            t_clean = re.sub(r'[^\w]', '', t)
+            if t_clean and t_clean not in _STOP_WORDS:
+                out.append(t_clean)
+        return out
+
     def _extract_auto(self, memory, query_variants, raw_query_embedding) -> ExtractResult:
-        # Implemented in Task 5
-        raise NotImplementedError("auto sentence-match added in Task 5")
+        sentences = [s.strip() for s in self._SENTENCE_SPLIT.split(memory.content) if s.strip()]
+        if not sentences:
+            return ExtractResult(used_mode="auto")
+
+        # Spec §5.4 step 3: sum query-token overlap counts ACROSS ALL VARIANTS, per sentence.
+        # Variants that share a token reinforce each other — e.g., raw and stop-stripped
+        # both contain "FAISS" → that token contributes twice.
+        variant_token_lists = [self._tokenize(v) for v in query_variants]
+
+        scored: List[Tuple[int, int]] = []
+        for idx, sent in enumerate(sentences):
+            sent_tokens = set(self._tokenize(sent))
+            # Sum over variants: each variant contributes its overlap count with this sentence.
+            score = 0
+            for v_tokens in variant_token_lists:
+                # Count occurrences of each variant token that appears in the sentence
+                for t in v_tokens:
+                    if t in sent_tokens:
+                        score += 1
+            scored.append((idx, score))
+
+        # Spec §5.4 — pick up to max_sentences with score > 0. No zero-score filler.
+        positive = [(idx, s) for (idx, s) in scored if s > 0]
+        if not positive:
+            # Implemented in Task 6 — for now, leave snippet None and return.
+            # (Task 6 replaces this with the cosine-floor fallback.)
+            return ExtractResult(used_mode="auto")
+
+        positive.sort(key=lambda x: (-x[1], x[0]))  # by score desc, then doc order asc
+        picks = positive[: self.max_sentences]
+
+        # Re-order picks to document order
+        picks.sort(key=lambda x: x[0])
+        pick_indices = [idx for (idx, _) in picks]
+
+        # Join with " … " between non-adjacent picks
+        parts = []
+        for i, idx in enumerate(pick_indices):
+            if i > 0 and pick_indices[i] - pick_indices[i - 1] > 1:
+                parts.append("…")
+            parts.append(sentences[idx])
+        memory.snippet = " ".join(parts)
+        return ExtractResult(used_mode="auto")
