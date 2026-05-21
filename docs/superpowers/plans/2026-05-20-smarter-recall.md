@@ -1759,37 +1759,36 @@ class TestSmartRecallWiring:
         # Hard to assert without integration; smoke-test that None is accepted.
         retrieval_engine.retrieve("query", rewrite=None, snippet=None)
 
-    def test_relevance_score_does_not_leak_across_recalls(self, smriti):
+    def test_relevance_score_does_not_leak_across_recalls(self, retrieval_engine, palace, make_memory, vector_store):
         """Memory.relevance_score from a palace-search hit in recall N must not
-        contaminate a recall N+1 where the same memory is FTS-only."""
-        from smriti_memcore.models import MemorySource
-        # Seed a memory with content that contains a rare lexical token AND embeddings
-        # that align with a different topic — first recall hits via palace, second via FTS.
-        mid = smriti.encode(
-            "rare-lexical-token-xyzzy is buried inside a sentence that talks about Python and programming",
-            source=MemorySource.USER_STATED,
+        contaminate a recall N+1 where the same memory is FTS-only.
+
+        Direct test of the stale-state guard: pre-set relevance_score on a memory
+        that palace.search won't visit, run retrieve, assert score was cleared
+        BEFORE _score_memory consumed it.
+        """
+        # Seed a memory in an isolated room — palace.search won't pull it for our query
+        m = make_memory("FTS-only candidate content with token-xyzzy that is well over the threshold " * 5)
+        palace.place_memory(m)
+        # Simulate a leaked lifted score from a prior recall
+        m.relevance_score = 0.95
+        assert m.relevance_score == 0.95  # sanity
+
+        # Run a recall whose vector path won't include this memory (different semantic).
+        # If the candidate enters via FTS, the guard must zero relevance_score.
+        results = retrieval_engine.retrieve(
+            "completely unrelated query about astronomy and stars",
+            rewrite="none", snippet="none", top_k=5,
         )
-        # Recall 1: query that hits the embedding side (programming/python) — palace.search
-        # likely populates this memory's relevance_score via the lift.
-        smriti.recall("python programming language", rewrite="none", snippet="none")
 
-        # Capture the relevance_score after recall 1
-        mem = smriti.palace.memories.get(mid)
-        if mem is None:
-            import pytest
-            pytest.skip("attention gate discarded the seeded memory")
-
-        # Recall 2: query that only hits the rare lexical token — palace.search may not score
-        # this memory (since semantic embedding doesn't match). But FTS will find it.
-        # The guard must zero relevance_score so _score_memory uses raw cosine.
-        results = smriti.recall("rare-lexical-token-xyzzy", rewrite="none", snippet="none")
-        # The memory should still be retrievable, but its retrieval_score must not be
-        # poisoned by recall 1's lifted score.
-        if results and results[0].id == mid:
-            # We can't assert exact score, but the guard means _score_memory used
-            # raw cosine (~0) for the relevance component, not the prior lifted value.
-            # This is a structural test — just confirm the recall doesn't crash and returns.
-            pass
+        # After the call, m.relevance_score must be 0.0 — either because the guard
+        # zeroed it (m entered via FTS), or because palace.search overwrote it with
+        # a lower value (m was a true palace candidate). Either way, the stale 0.95
+        # is gone.
+        assert m.relevance_score != 0.95, (
+            f"stale relevance_score=0.95 leaked through recall; "
+            f"current value={m.relevance_score}"
+        )
 ```
 
 > Note: this task needs a `retrieval_engine` pytest fixture. Add one if not present:
@@ -1940,11 +1939,15 @@ from typing import Callable, Dict, List, Literal, Optional, Tuple
         variant_embeddings = [self.vector_store.embed(v) for v in variants]
         raw_query_embedding = variant_embeddings[0]
 
-        # 2. Vector search (palace already widened to top-5 entry rooms internally)
+        # 2. Vector search (palace already widened to top-5 entry rooms internally).
+        # palace.search() writes memory.relevance_score on every candidate it scored.
         vector_candidates = self.palace.search(
             variants, variant_embeddings,
             top_k=top_k * 3, max_hops=max_hops,
         )
+        # Track which IDs palace scored this call — used below to clear stale
+        # relevance_score on FTS-only candidates (spec §6 stale-state guard).
+        palace_scored_ids = {m.id for m in vector_candidates}
 
         # 3. FTS keyword search (joined variants as query string)
         if self.fts_index is not None:
@@ -1972,7 +1975,15 @@ from typing import Callable, Dict, List, Literal, Optional, Tuple
             logger.debug(f"No memories found for query: {query[:60]}...")
             return []
 
-        # 4. Multi-factor scoring (unchanged)
+        # Stale-state guard: clear relevance_score on any candidate palace.search did
+        # not score this call (i.e., FTS-only pulls). Memory objects in palace.memories
+        # are reused across recalls, so a prior call's lifted value could leak.
+        for memory in candidates:
+            if memory.id not in palace_scored_ids:
+                memory.relevance_score = 0.0
+
+        # 4. Multi-factor scoring — _score_memory reads memory.relevance_score
+        # (set by palace.search, or zeroed above for FTS-only candidates).
         now = datetime.now()
         for memory in candidates:
             memory.retrieval_score = self._score_memory(memory, raw_query_embedding, now)
@@ -2388,10 +2399,11 @@ class TestSmritiGetMemory:
     def test_get_memory_returns_full_content(self):
         """Existing inject_smriti fixture is autouse; _smriti is populated."""
         import smriti_memcore.integrations.mcp_server as mcp_module
+        from smriti_memcore.models import MemorySource
         s = mcp_module._smriti
         mid = s.encode(
             "full content of a memory used to verify the get_memory tool",
-            source="user_stated",
+            source=MemorySource.USER_STATED,
         )
         if not mid:
             import pytest
