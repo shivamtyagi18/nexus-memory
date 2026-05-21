@@ -106,6 +106,7 @@ class SMRITI:
             vector_store=self.vector_store,
             config=self.config,
             fts_index=self.fts_index,
+            llm=self.llm,
         )
 
         self.consolidation_engine = ConsolidationEngine(
@@ -200,12 +201,14 @@ class SMRITI:
         query: str,
         context: str = "",
         top_k: Optional[int] = None,
+        rewrite: Optional[str] = None,
+        snippet: Optional[str] = None,
     ) -> List[Memory]:
         """
         Recall memories relevant to a query.
-        
+
         Pipeline: Meta-Memory check → Retrieval Engine → Working Memory
-        
+
         Returns list of memories, strongest first.
         Also surfaces any proactive suggestions/warnings.
         """
@@ -220,7 +223,7 @@ class SMRITI:
             # Still try retrieval, but the caller should know confidence is low
 
         # 2. Retrieval Engine: multi-hop search + strengthening
-        memories = self.retrieval_engine.retrieve(query, context, top_k)
+        memories = self.retrieval_engine.retrieve(query, context, top_k, rewrite=rewrite, snippet=snippet)
 
         if not memories:
             self.meta_memory.register_failed_retrieval(query, context)
