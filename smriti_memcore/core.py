@@ -9,7 +9,7 @@ import atexit
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from smriti_memcore.models import (
     ConfidenceLevel, DecisionType, Episode, Memory, MemorySource,
@@ -201,16 +201,14 @@ class SMRITI:
         query: str,
         context: str = "",
         top_k: Optional[int] = None,
-        rewrite: Optional[str] = None,
-        snippet: Optional[str] = None,
+        rewrite: Optional[Literal["auto", "llm", "none"]] = None,
+        snippet: Optional[Literal["auto", "llm", "none"]] = None,
     ) -> List[Memory]:
         """
         Recall memories relevant to a query.
 
-        Pipeline: Meta-Memory check → Retrieval Engine → Working Memory
-
-        Returns list of memories, strongest first.
-        Also surfaces any proactive suggestions/warnings.
+        rewrite / snippet: None → use config defaults (rewrite_mode_default /
+        snippet_mode_default). Explicit values override.
         """
         start = time.perf_counter()
 
