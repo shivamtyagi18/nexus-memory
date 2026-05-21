@@ -20,7 +20,7 @@ Target outcome: ~40-50% reduction in recall token-spend and measurable hit-rate@
 
 ## 2. Non-Goals
 
-- No new MCP tool. The existing `smriti_recall` tool gains parameters; no `smriti_session_brief`, no `smriti_recall_by_id` rewrite, no new endpoints.
+- No new MCP tools beyond the companion `smriti_get_memory(memory_id)` required to make `expandable: true` actionable (§8.3). No `smriti_session_brief`, no rewrite of existing endpoints.
 - No persistence-schema change. `Memory.snippet` is transient, like `retrieval_score`.
 - No change to the FTS5 / RRF hybrid layer. Query rewriting feeds into both vector and FTS sides but doesn't replace either.
 - No centroid-freshness audit. Codex flagged that `_update_room_centroid()` may not run on all mutation paths (deletes, consolidation merges); that audit is a separate ticket — this spec assumes centroids are fresh on read.
@@ -192,7 +192,7 @@ Clears `memory.snippet` (§5.2) and returns. Used by library callers who want ra
 1. **Threshold short-circuit:** if `len(memory.content) ≤ min_chars` (default 300), return after clearing snippet — content is already atomic.
 2. **Sentence split:** `re.split(r'(?<=[.!?])\s+', content)`. Limitations on code/markdown/abbreviations are accepted; the cosine-floor fallback (§5.5) handles the worst cases.
 3. **Score each sentence:** for each sentence, sum query-token overlap counts across all variants. Stop words filtered using the shared `_STOP_WORDS` set.
-4. **Pick top N by score** (default `max_sentences=2`); ties broken by original-order position.
+4. **Pick positive-score sentences only:** take up to `max_sentences` sentences with score > 0; ties broken by original-order position. If no sentences score > 0, jump to the cosine-floor fallback (§5.5) — do NOT include zero-score filler sentences.
 5. **Reorder picks** to original document order; join with `" … "` between non-adjacent picks.
 6. Set `memory.snippet = assembled`.
 
@@ -208,6 +208,8 @@ memory.snippet = sentences[top_idx]
 ```
 
 Uses `self.vector_store` from `__init__` (§5.1) and `raw_query_embedding` from the `extract()` call. Cheap (rare path; one embedding per sentence; small N). Decisively better than "first sentence" — Codex was right that first-sentence biases toward intros.
+
+**Cosine semantics:** `vector_store.embed()` returns L2-normalized vectors (`SentenceTransformer.encode(..., normalize_embeddings=True)`, vector_store.py:120). So `np.dot(a, b)` *is* cosine similarity. No explicit normalization step needed in §5.5 or §6.1.
 
 ### 5.6 `mode="llm"` — LLM-extracted sentences
 
@@ -283,11 +285,15 @@ for mem in candidate_memories:
     mem.retrieval_score = base * (1.0 + alpha * lift)
 ```
 
-### 6.2 Entry-room widening
+### 6.2 Entry-room widening and candidate pool
 
 Today `palace.search()` picks the top-3 rooms by centroid similarity for candidate generation. Codex flagged that the lift changes *ranking* but not *recall* — a memory in an off-top-3 room with no edge to any top-3 still never enters the pool.
 
-**Change:** widen to `entry_rooms_top_k=5` (new config field, §7). Cheap, directly addresses the recall ceiling.
+**Change:** widen to `entry_rooms_top_k=5` (new config field, §7).
+
+**Explicit candidate set:** memories considered for scoring = the union of (a) memories in any of the top-5 entry rooms (`hops=0`), and (b) memories in any 1-hop neighbor of those rooms (`hops=1`). Memories in rooms not reachable within 1 hop of any top-5 entry room are NOT in the candidate set. This is the same shape as today's pipeline, just with 5 entry rooms instead of 3.
+
+The adjacency lift in §6.1 then re-ranks within this widened pool. Recall expansion comes from the widening (3→5); ranking quality comes from the lift.
 
 ### 6.3 Edge-strength bound
 
@@ -344,24 +350,24 @@ SMRITI.recall(
 
 ### 8.2 MCP `smriti_recall` tool
 
-JSON schema gains:
+JSON schema gains the two enum parameters. They are **optional** (not required, no `default` field in the schema) so that omitting them on the MCP request falls through to the Python `None` sentinel, which falls through to the config defaults (§7). This keeps a single source of truth for default behavior:
 
 ```json
 {
   "rewrite": {
     "type": "string",
     "enum": ["auto", "llm", "none"],
-    "default": "auto",
-    "description": "auto = lexical variants (fast, no LLM); llm = LLM paraphrases (1-3s, better for hard queries); none = pass query through unchanged"
+    "description": "auto = lexical variants (fast, no LLM); llm = LLM paraphrases (1-3s, better for hard queries); none = pass query through unchanged. Omit to use server config default."
   },
   "snippet": {
     "type": "string",
     "enum": ["auto", "llm", "none"],
-    "default": "auto",
-    "description": "auto = top-2 sentence-match (fast); llm = LLM-extracted sentences (slower, noisy memories); none = return full content"
+    "description": "auto = top-2 sentence-match (fast); llm = LLM-extracted sentences (slower, noisy memories); none = return full content. Omit to use server config default."
   }
 }
 ```
+
+If the caller explicitly passes a value, it overrides the config; if omitted, the config wins. The schema description, not a JSON `default` field, communicates the fall-through. Avoids the situation Codex flagged where a hardcoded MCP default could diverge from `SmritiConfig.snippet_mode_default`.
 
 JSON response per memory gains:
 
