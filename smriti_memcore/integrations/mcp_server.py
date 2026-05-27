@@ -17,7 +17,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 try:
     import mcp
@@ -82,7 +82,7 @@ mcp_server = FastMCP(
     "smriti-memory",
     instructions=(
         "SMRITI memory system — AMP Full-conformant (amp_version: 1.0). "
-        "Exposes 12 native smriti_* tools and 6 AMP alias tools (amp.encode … amp.stats). "
+        "Exposes 14 native smriti_* tools and 6 AMP alias tools (amp.encode … amp.stats). "
         "Single-tenant: agent_id is accepted on AMP verbs but ignored; "
         "isolation is at the storage-path level."
         "\n\n"
@@ -98,11 +98,35 @@ mcp_server = FastMCP(
 
 # ── Serialization ─────────────────────────────────────────────────────────────
 
-def serialize_memory(memory: Memory) -> Dict[str, Any]:
-    """Convert a Memory dataclass to a JSON-serializable dict."""
+def serialize_memory(memory: Memory, smriti: Optional[SMRITI] = None) -> Dict[str, Any]:
+    """Convert a Memory dataclass to a JSON-serializable dict.
+
+    When `memory.snippet` is set, the `content` field returns the snippet (not the
+    full content); `expandable=true` signals that the caller can use
+    `smriti_get_memory(memory_id)` to fetch the full text (added in Task 13).
+
+    `metadata.rewrite_fallback` and `metadata.snippet_fallback` reflect the most
+    recent recall's degradation flags (from `retrieval_engine.retrieval_log[-1]`).
+    """
+    # Pull last-recall metadata from the smriti instance if provided
+    rewrite_fb = False
+    snippet_fb = False
+    if smriti is not None:
+        log = smriti.retrieval_engine.retrieval_log
+        if log:
+            rewrite_fb = bool(log[-1].get("rewrite_fallback", False))
+            snippet_fb = bool(log[-1].get("snippet_fallback", False))
+
+    has_snippet = memory.snippet is not None
     return {
         "id": memory.id,
-        "content": memory.content,
+        "memory_id": memory.id,  # alias for snippet-aware callers (spec §8.2)
+        "content": memory.snippet if has_snippet else memory.content,
+        "expandable": has_snippet,
+        "metadata": {
+            "rewrite_fallback": rewrite_fb,
+            "snippet_fallback": snippet_fb,
+        },
         "strength": memory.strength,
         "confidence": memory.confidence,
         "room_id": memory.room_id,
@@ -169,19 +193,53 @@ def smriti_encode(
 
 
 @mcp_server.tool()
-def smriti_recall(query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+def smriti_recall(
+    query: str,
+    top_k: int = 10,
+    rewrite: Optional[Literal["auto", "llm", "none"]] = None,
+    snippet: Optional[Literal["auto", "llm", "none"]] = None,
+) -> List[Dict[str, Any]]:
     """
     Recall memories relevant to a query.
 
-    Returns a list of memory dicts, strongest first. Every retrieval strengthens
-    the recalled memories (testing effect). Returns empty list if nothing found.
+    rewrite: "auto" (lexical variants, fast, default) | "llm" (LLM paraphrases, 1-3s,
+        better for hard queries) | "none" (pass query through unchanged).
+        Omit to use server config default.
+    snippet: "auto" (top-2 sentence-match, fast, default) | "llm" (LLM-extracted
+        sentences, slower, noisy memories) | "none" (return full content).
+        Omit to use server config default.
+
+    Returns a list of memory dicts (one per result). Each dict's `content` field is the
+    snippet when one was extracted; `expandable=true` and `metadata.snippet_fallback` /
+    `metadata.rewrite_fallback` flags surface internal mode degradation.
     """
     try:
-        memories = _smriti.recall(query, top_k=top_k)
-        return [serialize_memory(m) for m in memories]
+        memories = _smriti.recall(query, top_k=top_k, rewrite=rewrite, snippet=snippet)
+        return [serialize_memory(m, smriti=_smriti) for m in memories]
     except Exception as e:
         logger.error(f"smriti_recall failed: {e}")
         return [{"error": str(e)}]
+
+
+@mcp_server.tool()
+def smriti_get_memory(memory_id: str) -> Dict[str, Any]:
+    """
+    Fetch the full content of a memory by id.
+
+    Use this when smriti_recall returned a snippet (expandable=true) and you need the
+    complete memory. Returns the same shape as smriti_recall's per-memory dict, with
+    `content` always set to the full memory text and `expandable=false`.
+    """
+    try:
+        mem = _smriti.palace.get_memory(memory_id)
+        if mem is None:
+            return {"error": f"memory {memory_id} not found"}
+        # Clear any stale snippet so serialize_memory returns full content
+        mem.snippet = None
+        return serialize_memory(mem, smriti=_smriti)
+    except Exception as e:
+        logger.error(f"smriti_get_memory failed: {e}")
+        return {"error": str(e)}
 
 
 @mcp_server.tool()
@@ -542,9 +600,13 @@ def amp_recall(
 
     Returns {results: [{id, content, score, timestamp, status}, ...]}.
     Archived memories are excluded by default.
+
+    Note: passes snippet="none" so memory.content is the full text (AMP contract)
+    AND so memory.snippet doesn't get populated as a side effect (which would leak
+    into subsequent serialize_memory() calls — see code-review issue Important #1).
     """
     try:
-        memories = _smriti.recall(query, top_k=top_k)
+        memories = _smriti.recall(query, top_k=top_k, snippet="none")
         results = [
             {
                 "id": m.id,
@@ -664,7 +726,7 @@ def _startup():
     logger.info(f"Starting SMRITI MCP server (storage: {config.storage_path}, model: {config.llm_model})")
     _smriti = SMRITI(config=config)
     atexit.register(_smriti.save)
-    logger.info("SMRITI MCP server ready — 12 smriti_* tools + 6 AMP aliases registered")
+    logger.info("SMRITI MCP server ready — 14 smriti_* tools + 6 AMP aliases registered")
 
 
 if __name__ == "__main__":

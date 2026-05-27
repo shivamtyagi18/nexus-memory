@@ -107,3 +107,14 @@ class TestConcurrency:
             t.join()
 
         assert len(errors) == 0
+
+
+class TestSmartRecallParams:
+    def test_recall_accepts_rewrite_and_snippet(self, smriti):
+        # Should not raise
+        smriti.recall("Python", rewrite="none", snippet="none")
+        smriti.recall("Python", rewrite="auto", snippet="auto")
+
+    def test_recall_none_sentinel_uses_config(self, smriti):
+        # None should fall through to config defaults; default = "auto"
+        smriti.recall("Python", rewrite=None, snippet=None)
